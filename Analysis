@@ -1,0 +1,305 @@
+#-----------------------------------------------------------------
+#------------------Libraries and Fig Parameters-------------------
+#-----------------------------------------------------------------
+import numpy as np
+import scanpy as sc
+import anndata as ad
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import os
+import scipy.sparse
+from scipy.sparse import issparse
+
+
+print("Libraries imported successfully.")
+
+sc.settings.set_figure_params(dpi=50, facecolor="white") #Dots per inch: Resolution of Plot !300or more is publication quality
+
+# Load the preprocessed data
+adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\PP_data.h5ad")
+#adata = sc.read_he5d("7_Tum_PP")
+#adata = sc.read_he5d("7_Nor_PP")
+#adata = sc.read_he5d("14_PP")
+
+#4-------------Generate Eigenvectors to Reduce Dimensions------------
+sc.tl.pca(adata)
+sc.pl.pca_variance_ratio(adata, n_pcs=50, log=True)
+plt.show() #Show Distribution of 50 PCs with Highest Variance
+
+#5----------------------PCAs with best Eigenvectors-----------------
+explained_variance = adata.uns['pca']['variance_ratio'][:4] * 100 # Calculate the explained variance percentage for each PCA component
+sc.pl.pca(
+    adata,
+    color=["sample", "sample", "pct_counts_mt", "pct_counts_mt"],
+    dimensions=[(0, 1), (2, 3), (0, 1), (2, 3)],
+    ncols=2,
+    size=2,
+    show=False
+)
+
+# Get the current figure and axis objects
+fig = plt.gcf()
+axes = fig.axes
+# Adjust the axis labels to include explained variance percentage
+for i, ax in enumerate(axes[:4]):
+    if i % 2 == 0:  # Even index: PC1 vs PC2
+        x_pc, y_pc = 0, 1
+    else:  # Odd index: PC3 vs PC4
+        x_pc, y_pc = 2, 3
+
+    ax.set_xlabel(f'PC{x_pc+1} ({explained_variance[x_pc]:.2f}% variance)')
+    ax.set_ylabel(f'PC{y_pc+1} ({explained_variance[y_pc]:.2f}% variance)')
+
+#plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1, hspace=0.3, wspace=0.3)
+plt.show()
+
+#6-----------------------UMAP Nearest Neighbour----------------------
+sc.pp.neighbors(adata, n_neighbors=10)#Computes 15 NNs for each Cell
+sc.tl.umap(adata)#Dimension Reduction and Projection
+sc.pl.umap(
+    adata,
+    color="sample",#Sample Coloures cells
+    size=2,#Size of points
+)
+plt.show() #Nearest neighbour plot
+
+#7-----------------------------Clustering----------------------------------
+#sc.tl.leiden(adata, resolution = 0.6, key_added = "leiden_0.6")
+sc.tl.leiden(adata, resolution = 0.8, key_added = "leiden_0.8")
+sc.tl.leiden(adata, key_added = "leiden_1.0") # default resolution in 1.0
+#sc.tl.leiden(adata, resolution = 1.4, key_added = "leiden_1.4")
+
+fig, ax = plt.subplots(figsize=(8, 6))
+ax = sc.pl.umap(adata, color=['leiden_0.8'], ax=ax,show=False)
+cluster_counts = adata.obs['leiden_0.8'].value_counts()
+# Get the UMAP coordinates
+umap_coords = adata.obsm['X_umap']
+
+# Loop through each cluster and add text annotation
+for cluster_id in cluster_counts.index:
+    # Find the center of each cluster
+    cluster_cells = adata.obs['leiden_0.8'] == cluster_id
+    cluster_center = umap_coords[cluster_cells].mean(axis=0)
+
+    # Add text annotation for each cluster
+    ax.text(cluster_center[0], cluster_center[1],
+            f'{cluster_id}',
+            fontsize=12, ha='center', va='center', color='black')
+# Show the plot
+plt.show()
+adata.obs['leiden'] = adata.obs['leiden_0.8']
+#8-----------------Hierarchical Clustering-------------------------------
+sc.tl.dendrogram(adata, groupby = "leiden_0.8")
+sc.pl.dendrogram(adata, groupby = "leiden_0.8")
+plt.show()
+
+#9------------Checking for Doublets, Genes, MTs and diff Genes------------
+sc.pl.umap(
+    adata,
+    color=['leiden_0.8', 'predicted_doublet', 'doublet_score', 'log1p_total_counts', 'pct_counts_mt', 'log1p_n_genes_by_counts'],
+    wspace=0.5,#Horizontal Space between Panels
+    size=2,
+    ncols=2,
+)
+plt.show()
+
+adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Clustering.h5ad")
+
+#10-----------------------Dot Plot---------------------------------------
+#genes  = ["ASCL2","OLFM4","LGR5","TFF3", "AGR2", "KRT8", "KRT18","EPCAM", "PIGR", "CEACAM5","IL7R", "SARAF", "LTB","CCL5", "RORA", "GZMA","COL1A1", "COL3A1", "DCN","CD79A", "MS4A1", "TPSAB1","JCHAIN", "MZB1","S100A8", "S100A9", "CXCL8","STMN1", "PTTG1", "HMGB2","PLVAP", "VWF", "PECAM1","TAGLN", "RGS5", "ACTA2"]
+#sc.pl.dotplot(adata, genes, groupby='leiden_0.8', dendrogram=True)
+#plt.show()#DotPlot
+genes  = ["IL7R","SARAF","LTB","CCL5","RORA","GZMA","COL1A1","COL3A1","DCN","EPCAM","PIGR","CEACAM5","CD79A","MS4A1","CD37","C1QA","LYZ","CD68","KIT","CPA3","TPSAB1","JCHAIN","MZB1","TFF3","AGR2","KRT8","KRT18","S100A8","S100A9","CXCL8","STMN1","PTTG1","HMGB2","PLVAP","VWF","PECAM1","TAGLN","RGS5","ACTA2"]
+sc.pl.dotplot(adata, genes, groupby='leiden_0.8', dendrogram=True)
+plt.show()#DotPlot
+#Marker-Genes:
+#CSC: ["TFF3", "AGR2", "KRT8", "KRT18"],
+#CC: ["EPCAM", "PIGR", "CEACAM5"],
+#CD4+ T Cells: ["IL7R", "SARAF", "LTB"],
+#CD8+ T Cells: ["CCL5", "RORA", "GZMA"],
+#Fibroblasts: ["COL1A1", "COL3A1", "DCN"],
+#B Cells: ["CD79A", "MS4A1", "TPSAB1"],
+#Plasma Cells: ["JCHAIN", "MZB1"],
+#Neutrophils: ["S100A8", "S100A9", "CXCL8"],
+#Mesenchymal Stem Cells: ["STMN1", "PTTG1", "HMGB2"],
+#Endothelial Cells: ["PLVAP", "VWF", "PECAM1"],
+#Smooth Muscle Cells: ["TAGLN", "RGS5", "ACTA2"],
+
+#11-----------------Annotate Clusters-----------------------------------
+#adata.obs["cell_type_lvl1"] = adata.obs["leiden_res_0.02"].map(
+#    {
+#        "0": "CSC",
+#        "1": "CC",
+#        "2": "CD4+ T Cells",
+#        "3": "CD8+ T Cells",
+#        "4": "Fibroblasts",
+#        "5": "B Cells",
+#       "6": "Macrophages",
+#        "7": "Mast Cells",
+#        "8": "Plasma Cells",
+#        "9": "Neutrophils",
+#        "10": "Mesenchymal SC",
+#        "11": "Endothelial Cells",
+#        "12": "Smooth Muscle Cells",
+#    }
+#)
+#-----------------------------------------------------------------
+#2-------------------------Selected Genes-------------------------
+#-----------------------------------------------------------------
+adata.obs['ALCAM_present'] = adata[:, "ALCAM"].X.toarray().flatten() > 0
+adata.obs['EPCAM_present'] = adata[:, "EPCAM"].X.toarray().flatten() > 0
+adata.obs['OLFM4_present'] = adata[:, "OLFM4"].X.toarray().flatten() > 0
+adata.obs['CEACAM6_present'] = adata[:, "CEACAM6"].X.toarray().flatten() > 0
+#adata.obs['CD133_present'] = adata[:, "CD133"].X.toarray().flatten() > 0
+adata.obs['PROCR_present'] = adata[:, "PROCR"].X.toarray().flatten() > 0
+adata.obs['SCD_present'] = adata[:, "SCD"].X.toarray().flatten() > 0
+adata.obs['CD24_present'] = adata[:, "CD24"].X.toarray().flatten() > 0
+#adata.obs['CD44v6_present'] = adata[:, "CD44v6"].X.toarray().flatten() > 0
+adata.obs['LGR5_present'] = adata[:, "LGR5"].X.toarray().flatten() > 0
+adata.obs['ASCL2_present'] = adata[:, "ASCL2"].X.toarray().flatten() > 0
+adata.obs['EPHB2_present'] = adata[:, "EPHB2"].X.toarray().flatten() > 0
+#adata.obs['PROMI_present'] = adata[:, "PROMI"].X.toarray().flatten() > 0
+adata.obs['AXIN2_present'] = adata[:, "AXIN2"].X.toarray().flatten() > 0
+#adata.obs['HPA_present'] = adata[:, "HPA"].X.toarray().flatten() > 0
+adata.obs['SLC12A2_present'] = adata[:, "SLC12A2"].X.toarray().flatten() > 0
+adata.obs['RNF43_present'] = adata[:, "RNF43"].X.toarray().flatten() > 0
+adata.obs['LEFTY1_present'] = adata[:, "LEFTY1"].X.toarray().flatten() > 0
+adata.obs['CD44_present'] = adata[:, "CD44"].X.toarray().flatten() > 0
+
+#'CEACAM1','CEACAM3','CEACAM4','CEACAM5','CEACAM6','CEACAM7','CEACAM8','CEACAM16'
+#'CEACAM18','CEACAM19','CEACAM20','CEACAM21'
+
+#'CEACAM1_present','CEACAM3_present','CEACAM4_present','CEACAM5_present','CEACAM6_present','CEACAM7_present','CEACAM8_present','CEACAM16_present'
+#'CEACAM18_present','CEACAM19_present','CEACAM20_present','CEACAM21_present'
+
+##2a----------------------------Present----------------------------
+sc.pl.umap(
+    adata,
+    color=['ALCAM', 'CD44','ALCAM_present','CD44_present',],
+    palette=["lightblue","darkblue"],
+    wspace=1.0,
+    ncols=2,
+)
+plt.tight_layout() #Adjust layout to avoid overlap
+#plt.show() #8More QC Metrics
+
+#2b---------------------Heat Map of Gene Observations--------------------
+sc.pl.umap(
+    adata,
+    color=['AXIN2','SLC12A2','SCD','EPHB2','CEACAM6','LGR5','LEFTY1','OLFM4','SLC12A2','ASCL2','AGR2','ASCL2',],
+    palette=["lightblue","darkblue"],
+    wspace=1.0,
+    ncols=3,
+)
+plt.tight_layout() #Adjust layout to avoid overlap
+#plt.show()
+
+marker_genes = {
+    "CD14+ Mono": ["FCN1", "CD14"],
+    "CD16+ Mono": ["TCF7L2", "FCGR3A", "LYN"],
+    "ID2-hi myeloid prog": ["CD14", "ID2", "VCAN", "S100A9", "CLEC12A", "KLF4", "PLAUR"],
+    "cDC1": ["CLEC9A", "CADM1"],
+    "cDC2": ["CST3", "COTL1", "LYZ", "DMXL2", "CLEC10A", "FCER1A"],  # Note: DMXL2 should be negative
+    "Normoblast": ["SLC4A1", "SLC25A37", "HBB", "HBA2", "HBA1", "TFRC"],
+    "Erythroblast": ["MKI67", "HBA1", "HBB"],
+    "Proerythroblast": ["CDK6", "SYNGR1", "HBM", "GYPA"],  # Note HBM and GYPA are negative markers
+    "NK": ["GNLY", "NKG7", "CD247", "GRIK4", "FCER1G", "TYROBP", "KLRG1", "FCGR3A"],
+    "ILC": ["ID2", "PLCG2", "GNLY", "SYNE1"],
+    "Lymph prog": ["VPREB1", "MME", "EBF1", "SSBP2", "BACH2", "CD79B", "IGHM", "PAX5", "PRKCE",
+                   "DNTT","IGLL1"],
+    "Naive CD20+ B": ["MS4A1", "IL4R", "IGHD", "FCRL1", "IGHM"],
+    "B1 B": ["MS4A1", "SSPN", "ITGB1", "EPHA4", "COL4A4", "PRDM1", "IRF4", "CD38", "XBP1", "PAX5",
+        "BCL11A", "BLK",  "ZNF215", "IGHD", "IGHM"],  # Note IGHD and IGHM are negative markers
+    "Transitional B": ["MME", "CD38", "CD24", "ACSM3", "MSI2"],
+    "Plasma Cells": ["JCHAIN", "MZB1", "HSP90B1", "FNDC3B", "PRDM1", "IGKC"],
+    "Plasmablasts": ["XBP1", "RF4", "PRDM1", "PAX5"],  # Note PAX5 is a negative marker
+    "CD4+ T activated": ["IL7R", "SARAF", "LTB", "CD4", "TRBC2", "ITGB1"],
+    "CD4+ T naive": ["CD4", "IL7R", "TRBC2", "CCR7"],
+    "CD8+ T": ["CCL5", "RORA", "GZMA", "CD8A", "CD8B", "GZMK",   "GZMB", "GZMH"],
+    "T activation": ["CD69", "CD38"],  # CD69 much better marker!
+    "T naive": ["LEF1", "CCR7", "TCF7"],
+    "pDC": ["GZMB", "IL3RA", "COBLL1", "TCF4"],
+    "G/M prog": ["MPO", "BCL2", "KCNQ5", "CSF3R"],
+    "HSC": ["NRIP1", "MECOM", "PROM1", "NKAIN2", "CD34"],
+    "MK/E prog": ["ZNF385D", "ITGA2B", "RYR3", "PLCB1"],# Note PLCB1 is a negative marker
+    "Fibroblasts": ["COL1A1", "COL3A1", "DCN","VIM", "PDGFRB", "LUM", "COL6A2", "VTN"],
+    "Macrophages": ["C1QA", "LYZ", "CD68", "FCGR1", "NAAA", "LYZ2"],
+    "Epithelial Cells": ["EPCAM", "PIGR", "CEACAM", "CD24"],
+    "Mast Cells": ["KIT", "CPA3", "TPSAB1", "IL1RL1", "HDC"],
+    "Neutrophils": ["S100A8", "S100A9", "CXCL8", "HP", "HDC"],
+    "Endothelial": ["PLVAP", "VMF", "PECAM1", "IGFBP7", "ID3", "EGFL7"],
+    "Smooth Muscle Cells": ["TAGLN", "RGS5", "ACTA2"]
+}
+
+marker_genes_in_data = dict()
+for ct, markers in marker_genes.items():
+    markers_found = list()
+    for marker in markers:
+        if marker in adata.var.index:
+            markers_found.append(marker)
+    marker_genes_in_data[ct] = markers_found
+
+adata.layers["counts"] = adata.X
+
+Cell_Types_cts = [
+    "CD4+ T activated",
+    "CD4+ T naive",
+    "CD8+ T",
+    "Fibroblasts",
+    "Epithelial Cells",
+    "B1 B",
+    "Transitional B",
+    "Macrophages",
+    "Mast Cells",
+    "Plasma Cells",
+    "Plasmablasts",
+    "Neutrophils",
+    "Endothelial",
+    "Smooth Muscle Cells"
+]
+
+for ct in Cell_Types_cts:
+    print(f"{ct.upper()}:")  # print cell subtype name
+    sc.pl.umap(
+        adata,
+        color=marker_genes_in_data[ct],
+        vmin=0,
+        vmax="p99",  # set vmax to the 99th percentile of the gene count instead of the maximum, to prevent outliers from making expression in other cells invisible. Note that this can cause problems for extremely lowly expressed genes.
+        sort_order=False,  # do not plot highest expression on top, to not get a biased view of the mean expression among cells
+        frameon=False,
+        cmap="Reds",  # or choose another color map e.g. from here: https://matplotlib.org/stable/tutorials/colors/colormaps.html
+    )
+    print("\n\n\n")  # print white space for legibility
+
+#10-----------------------Dot Plot---------------------------------------
+plotgenes  = ["IL7R", "SARAF", "LTB", "CD4", "TRBC2", "ITGB1",#CD4+ T activated
+              "CD4", "IL7R", "TRBC2", "CCR7",#CD4+ T naive
+              "CCL5", "RORA", "GZMA", "CD8A", "CD8B", "GZMK",   "GZMB", "GZMH",#CD8+ T
+              "COL1A1", "COL3A1", "DCN","VIM", "PDGFRB", "LUM", "COL6A2", "VTN",#Fibroblasts
+              "EPCAM", "PIGR", "CEACAM", "CD24",#Epithelial Cells
+              "MS4A1", "SSPN", "ITGB1", "EPHA4", "COL4A4", "PRDM1", "IRF4", "CD38", "XBP1", "PAX5","BCL11A", "BLK",  "ZNF215", "IGHD", "IGHM",#B1B
+              "MME", "CD38", "CD24", "ACSM3", "MSI2",#Transitional B
+              "C1QA", "LYZ", "CD68", "FCGR1", "NAAA", "LYZ2",#Macrophages
+              "KIT", "CPA3", "TPSAB1", "IL1RL1", "HDC",#Mast Cells
+              "JCHAIN", "MZB1", "HSP90B1", "FNDC3B", "PRDM1", "IGKC",#Plasma Cells
+              "XBP1", "RF4", "PRDM1", "PAX5",#Plasmablasts
+              "S100A8", "S100A9", "CXCL8", "HP", "HDC",#Neutrophils
+              "PLVAP", "VMF", "PECAM1", "IGFBP7", "ID3", "EGFL7",#Endothelial
+              "TAGLN", "RGS5", "ACTA2"#Smooth Muscle Cells
+]
+
+plotgenes_present = [gene for gene in plotgenes if gene in adata.var.index]
+#sc.pl.dotplot(adata, genes, groupby='leiden_0.8', dendrogram=True)
+#plt.show()#DotPlot
+sc.pl.dotplot(adata,
+              groupby='leiden_0.8',
+              var_names=plotgenes_present,
+              standard_scale="var",
+              dendrogram=False)
+plt.show()#DotPlot
+
+
+
+
+print("Script Finished Successfully")
