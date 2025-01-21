@@ -3,7 +3,10 @@ import scanpy as sc
 import numpy as np
 import pandas as pd
 from numba.core.ir import Print
+import matplotlib.pyplot as plt
 
+
+sc.settings.set_figure_params(dpi=50, facecolor="white") #Dots per inch: Resolution of Plot !300or more is publication quality
 pd.set_option("display.precision", 9)
 
 url = "https://raw.githubusercontent.com/kris-nader/sc-type-py/main/sctype_py.py"
@@ -58,5 +61,12 @@ for cluster in sctype_scores['cluster'].unique():
     adata.obs.loc[adata.obs['leiden'] == cluster, 'sctype_classification'] = cl_type_value
 
 # Plot the UMAP with sctype_classification as labels
-sc.pl.umap(adata, color='sctype_classification', title='UMAP with sctype_classification')
-#sc.pl.spatial(adata, img_key="hires", color=["sctype_classification"])
+sc.pl.umap(adata, color='sctype_classification',
+           title='UMAP with sctype_classification',
+           show=False)
+
+# Access Matplotlib figure and modify
+plt.gcf().set_size_inches(15, 10)  # Set figure dimensions
+plt.subplots_adjust(left=0, right=2, top=0.9, bottom=0.1)
+plt.savefig('UMAP_sctype_classification_full.png', bbox_inches='tight', dpi=300)
+plt.show()
