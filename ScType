@@ -1,0 +1,62 @@
+import urllib.request
+import scanpy as sc
+import numpy as np
+import pandas as pd
+from numba.core.ir import Print
+
+pd.set_option("display.precision", 9)
+
+url = "https://raw.githubusercontent.com/kris-nader/sc-type-py/main/sctype_py.py"
+response = urllib.request.urlopen(url)
+script = response.read().decode()
+print("Read Script")
+# Execute the script
+exec(script)
+print("Exced Script")
+
+input_file = "C:\\Users\\Gretzmache_N\\IdeaProjects\\SCRNAseq\\src\\Clustering.h5ad"
+adata = sc.read_h5ad(input_file)
+print("Imported Adata")
+
+# Scale and run PCA
+sc.pp.scale(adata,max_value=10)
+scaled_data = pd.DataFrame(adata.X)
+# change column indexes
+scaled_data.columns =adata.var_names
+# Change the row indexes
+scaled_data.index = adata.obs_names
+scaled_data=scaled_data.T
+print("Scaled Adata")
+
+# Load the data- this is scaled
+#adata = sc.read_text("/Users/naderkri/Desktop/sptype/pbmc_scaled.txt",first_column_names=True)
+#scRNAseqData = pd.DataFrame(adata.X, columns=adata.var_names, index=adata.obs_names)
+scRNAseqData=scaled_data
+gs_list = gene_sets_prepare(path_to_db_file=r"D:\UKW\DataSets\sctypeDB\ScTypeDB_full.xlsx",cell_type="Immune system")
+print("got sctypeDB")
+es_max = sctype_score(scRNAseqData = scRNAseqData, scaled = True, gs = gs_list['gs_positive'], gs2 = gs_list['gs_negative'])
+print("got scores")
+unique_clusters = adata.obs['leiden'].unique()
+# Apply the function to each unique cluster and combine the results into a DataFrame
+cL_results = pd.concat([process_cluster(cluster,adata,es_max,"leiden") for cluster in unique_clusters])
+print("got Cluster results")
+# Group by cluster and select the top row based on scores
+sctype_scores = cL_results.groupby('cluster').apply(lambda x: x.nlargest(1, 'scores')).reset_index(drop=True)
+print("got scores again")
+# Set low-confidence clusters to "Unknown"
+sctype_scores.loc[sctype_scores['scores'] < sctype_scores['ncells'] / 4, 'type'] = 'Unknown'
+
+adata.obs['sctype_classification'] = ""
+print("got Classification")
+# Iterate over unique clusters
+for cluster in sctype_scores['cluster'].unique():
+    # Filter sctype_scores for the current cluster
+    cl_type = sctype_scores[sctype_scores['cluster'] == cluster]
+    # Get the type for the current cluster
+    cl_type_value = cl_type['type'].iloc[0]
+    # Update 'sctype_classification' in pbmc.obs for cells belonging to the current cluster
+    adata.obs.loc[adata.obs['leiden'] == cluster, 'sctype_classification'] = cl_type_value
+
+# Plot the UMAP with sctype_classification as labels
+sc.pl.umap(adata, color='sctype_classification', title='UMAP with sctype_classification')
+#sc.pl.spatial(adata, img_key="hires", color=["sctype_classification"])
