@@ -61,12 +61,17 @@ for cluster in sctype_scores['cluster'].unique():
     adata.obs.loc[adata.obs['leiden'] == cluster, 'sctype_classification'] = cl_type_value
 
 # Plot the UMAP with sctype_classification as labels
-sc.pl.umap(adata, color='sctype_classification',
-           title='UMAP with sctype_classification',
-           show=False)
+sc.pl.umap(adata,
+           color=['sctype_classification','sample'],
+           wspace=4,#Horizontal Space between Panels
+           size=2,
+           ncols=1,
+           title=['UMAP with sctype_classification','UMAP coloured by sample'],
+           #show=False
+           )
 
 # Access Matplotlib figure and modify
-plt.gcf().set_size_inches(15, 10)  # Set figure dimensions
-plt.subplots_adjust(left=0, right=2, top=0.9, bottom=0.1)
-plt.savefig('UMAP_sctype_classification_full.png', bbox_inches='tight', dpi=300)
-plt.show()
+#plt.gcf().set_size_inches(10, 12)  # Set figure dimensions
+#plt.subplots_adjust(left=0.2, right=0.8, top=0.9, bottom=0.2)
+#plt.savefig('UMAP_sctype_classification_full.png', bbox_inches='tight', dpi=300)
+#plt.show()
