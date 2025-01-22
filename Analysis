@@ -10,7 +10,8 @@ import seaborn as sns
 import os
 import scipy.sparse
 from scipy.sparse import issparse
-
+import scanpy.external as sce
+import urllib.request
 
 print("Libraries imported successfully.")
 
@@ -21,12 +22,20 @@ adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\PP_data.h
 #adata = sc.read_he5d("7_Tum_PP")
 #adata = sc.read_he5d("7_Nor_PP")
 #adata = sc.read_he5d("14_PP")
+# Fetch the script from the URL
+url = "https://raw.githubusercontent.com/kris-nader/sc-type-py/main/sctype_py.py"
+response = urllib.request.urlopen(url)
+script = response.read().decode()
 
+# Execute the script
+exec(script)
 #4-------------Generate Eigenvectors to Reduce Dimensions------------
-sc.tl.pca(adata)
-sc.pl.pca_variance_ratio(adata, n_pcs=50, log=True)
+#Dimensionality Reduction
+sc.tl.pca(adata, n_comps=70)
+sc.pl.pca_variance_ratio(adata, n_pcs=70, log=True)
 plt.show() #Show Distribution of 50 PCs with Highest Variance
-
+#Plot shows Elbow at Eigenvector: 20
+#sc.tl.pca(adata, n_comps=20)
 #5----------------------PCAs with best Eigenvectors-----------------
 explained_variance = adata.uns['pca']['variance_ratio'][:4] * 100 # Calculate the explained variance percentage for each PCA component
 sc.pl.pca(
@@ -55,7 +64,24 @@ for i, ax in enumerate(axes[:4]):
 plt.show()
 
 #6-----------------------UMAP Nearest Neighbour----------------------
-sc.pp.neighbors(adata, n_neighbors=10)#Computes 15 NNs for each Cell
+sc.pp.neighbors(adata, n_pcs=20, n_neighbors=15)#Computes 15 NNs for each Cell
+sc.tl.umap(adata, min_dist=0.3)#Dimension Reduction and Projection
+sc.pl.umap(
+    adata,
+    color="sample",#Sample Coloures cells
+    size=2,#Size of points
+)
+plt.show() #Nearest neighbour plot
+
+#------------------------Harmony-Correction--------------------
+sce.pp.harmony_integrate(adata, 'sample')
+'X_pca_harmony' in adata.obsm
+True
+#sce.pp.mnn_correct(adata, var_index=None, var_subset=None, batch_key='sample', index_unique='-', batch_categories=None, k=10, sigma=1.0, cos_norm_in=True, cos_norm_out=True, svd_dim=None, var_adj=True, compute_angle=False, mnn_order=None, svd_mode='rsvd', do_concatenate=True, save_raw=False, n_jobs=None)
+
+
+#6-----------------------UMAP Nearest Neighbour----------------------
+sc.pp.neighbors(adata, n_neighbors=15)#Computes 15 NNs for each Cell
 sc.tl.umap(adata)#Dimension Reduction and Projection
 sc.pl.umap(
     adata,
@@ -64,22 +90,25 @@ sc.pl.umap(
 )
 plt.show() #Nearest neighbour plot
 
+
+
 #7-----------------------------Clustering----------------------------------
 #sc.tl.leiden(adata, resolution = 0.6, key_added = "leiden_0.6")
 sc.tl.leiden(adata, resolution = 0.8, key_added = "leiden_0.8")
 sc.tl.leiden(adata, key_added = "leiden_1.0") # default resolution in 1.0
 #sc.tl.leiden(adata, resolution = 1.4, key_added = "leiden_1.4")
+adata.obs['leiden'] = adata.obs['leiden_0.8']
 
 fig, ax = plt.subplots(figsize=(8, 6))
-ax = sc.pl.umap(adata, color=['leiden_0.8'], ax=ax,show=False)
-cluster_counts = adata.obs['leiden_0.8'].value_counts()
+ax = sc.pl.umap(adata, color=['leiden'], ax=ax,show=False)
+cluster_counts = adata.obs['leiden'].value_counts()
 # Get the UMAP coordinates
 umap_coords = adata.obsm['X_umap']
 
 # Loop through each cluster and add text annotation
 for cluster_id in cluster_counts.index:
     # Find the center of each cluster
-    cluster_cells = adata.obs['leiden_0.8'] == cluster_id
+    cluster_cells = adata.obs['leiden'] == cluster_id
     cluster_center = umap_coords[cluster_cells].mean(axis=0)
 
     # Add text annotation for each cluster
@@ -88,16 +117,16 @@ for cluster_id in cluster_counts.index:
             fontsize=12, ha='center', va='center', color='black')
 # Show the plot
 plt.show()
-adata.obs['leiden'] = adata.obs['leiden_0.8']
+
 #8-----------------Hierarchical Clustering-------------------------------
-sc.tl.dendrogram(adata, groupby = "leiden_0.8")
-sc.pl.dendrogram(adata, groupby = "leiden_0.8")
+sc.tl.dendrogram(adata, groupby = 'leiden')
+sc.pl.dendrogram(adata, groupby = 'leiden')
 plt.show()
 
 #9------------Checking for Doublets, Genes, MTs and diff Genes------------
 sc.pl.umap(
     adata,
-    color=['leiden_0.8', 'predicted_doublet', 'doublet_score', 'log1p_total_counts', 'pct_counts_mt', 'log1p_n_genes_by_counts'],
+    color=['leiden', 'sample', 'doublet_score', 'log1p_total_counts', 'pct_counts_mt', 'log1p_n_genes_by_counts'],
     wspace=0.5,#Horizontal Space between Panels
     size=2,
     ncols=2,
@@ -172,17 +201,6 @@ adata.obs['CD44_present'] = adata[:, "CD44"].X.toarray().flatten() > 0
 
 #'CEACAM1_present','CEACAM3_present','CEACAM4_present','CEACAM5_present','CEACAM6_present','CEACAM7_present','CEACAM8_present','CEACAM16_present'
 #'CEACAM18_present','CEACAM19_present','CEACAM20_present','CEACAM21_present'
-
-##2a----------------------------Present----------------------------
-sc.pl.umap(
-    adata,
-    color=['ALCAM', 'CD44','ALCAM_present','CD44_present',],
-    palette=["lightblue","darkblue"],
-    wspace=1.0,
-    ncols=2,
-)
-plt.tight_layout() #Adjust layout to avoid overlap
-#plt.show() #8More QC Metrics
 
 #2b---------------------Heat Map of Gene Observations--------------------
 sc.pl.umap(
@@ -298,8 +316,5 @@ sc.pl.dotplot(adata,
               standard_scale="var",
               dendrogram=False)
 plt.show()#DotPlot
-
-
-
 
 print("Script Finished Successfully")
