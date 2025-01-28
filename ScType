@@ -17,7 +17,32 @@ print("Read Script")
 exec(script)
 print("Exced Script")
 
-input_file = "C:\\Users\\Gretzmache_N\\IdeaProjects\\SCRNAseq\\src\\Clustering.h5ad"
+#input_file = "C:\\Users\\Gretzmache_N\\IdeaProjects\\SCRNAseq\\src\\Clustering.h5ad"
+
+#input_file = "C:\\Users\\Gretzmache_N\\IdeaProjects\\SCRNAseq\\src\\Pat1Nor_Clustering.h5ad"
+#input_file = "C:\\Users\\Gretzmache_N\\IdeaProjects\\SCRNAseq\\src\\Pat2Nor_Clustering.h5ad"
+#input_file = "C:\\Users\\Gretzmache_N\\IdeaProjects\\SCRNAseq\\src\\Pat3Nor_Clustering.h5ad"
+#input_file = "C:\\Users\\Gretzmache_N\\IdeaProjects\\SCRNAseq\\src\\Pat4Nor_Clustering.h5ad"
+#input_file = "C:\\Users\\Gretzmache_N\\IdeaProjects\\SCRNAseq\\src\\Pat5Nor_Clustering.h5ad"
+input_file = "C:\\Users\\Gretzmache_N\\IdeaProjects\\SCRNAseq\\src\\Pat6Nor_Clustering.h5ad"
+#input_file = "C:\\Users\\Gretzmache_N\\IdeaProjects\\SCRNAseq\\src\\Pat7Nor_Clustering.h5ad"
+
+#input_file = "C:\\Users\\Gretzmache_N\\IdeaProjects\\SCRNAseq\\src\\Pat1Tum_Clustering.h5ad"
+#input_file = "C:\\Users\\Gretzmache_N\\IdeaProjects\\SCRNAseq\\src\\Pat2Tum_Clustering.h5ad"
+#input_file = "C:\\Users\\Gretzmache_N\\IdeaProjects\\SCRNAseq\\src\\Pat3Tum_Clustering.h5ad"
+#input_file = "C:\\Users\\Gretzmache_N\\IdeaProjects\\SCRNAseq\\src\\Pat4Tum_Clustering.h5ad"
+#input_file = "C:\\Users\\Gretzmache_N\\IdeaProjects\\SCRNAseq\\src\\Pat5Tum_Clustering.h5ad"
+#input_file = "C:\\Users\\Gretzmache_N\\IdeaProjects\\SCRNAseq\\src\\Pat6Tum_Clustering.h5ad"
+#input_file = "C:\\Users\\Gretzmache_N\\IdeaProjects\\SCRNAseq\\src\\Pat7Tum_Clustering.h5ad"
+
+#input_file = "C:\\Users\\Gretzmache_N\\IdeaProjects\\SCRNAseq\\src\\mat1_Clustering.h5ad"
+#input_file = "C:\\Users\\Gretzmache_N\\IdeaProjects\\SCRNAseq\\src\\mat2_Clustering.h5ad"
+#input_file = "C:\\Users\\Gretzmache_N\\IdeaProjects\\SCRNAseq\\src\\mat3_Clustering.h5ad"
+#input_file = "C:\\Users\\Gretzmache_N\\IdeaProjects\\SCRNAseq\\src\\mat4_Clustering.h5ad"
+#input_file = "C:\\Users\\Gretzmache_N\\IdeaProjects\\SCRNAseq\\src\\mat5_Clustering.h5ad"
+#input_file = "C:\\Users\\Gretzmache_N\\IdeaProjects\\SCRNAseq\\src\\mat6_Clustering.h5ad"
+#input_file = "C:\\Users\\Gretzmache_N\\IdeaProjects\\SCRNAseq\\src\\mat7_Clustering.h5ad"
+
 adata = sc.read_h5ad(input_file)
 print("Imported Adata")
 
@@ -35,7 +60,7 @@ print("Scaled Adata")
 #adata = sc.read_text("/Users/naderkri/Desktop/sptype/pbmc_scaled.txt",first_column_names=True)
 #scRNAseqData = pd.DataFrame(adata.X, columns=adata.var_names, index=adata.obs_names)
 scRNAseqData=scaled_data
-gs_list = gene_sets_prepare(path_to_db_file=r"D:\UKW\DataSets\sctypeDB\ScTypeDB_full.xlsx",cell_type="Immune system")
+gs_list = gene_sets_prepare(path_to_db_file=r"D:\UKW\DataSets\sctypeDB\ScTypeDB_full.xlsx",cell_type='Intestine')
 print("got sctypeDB")
 es_max = sctype_score(scRNAseqData = scRNAseqData, scaled = True, gs = gs_list['gs_positive'], gs2 = gs_list['gs_negative'])
 print("got scores")
@@ -46,8 +71,14 @@ print("got Cluster results")
 # Group by cluster and select the top row based on scores
 sctype_scores = cL_results.groupby('cluster').apply(lambda x: x.nlargest(1, 'scores')).reset_index(drop=True)
 print("got scores again")
+
 # Set low-confidence clusters to "Unknown"
 sctype_scores.loc[sctype_scores['scores'] < sctype_scores['ncells'] / 4, 'type'] = 'Unknown'
+print(sctype_scores.iloc[:, 1:3])
+
+print(cL_results.columns)
+print(sctype_scores.columns)
+print(sctype_scores[['scores', 'ncells']].dtypes)
 
 adata.obs['sctype_classification'] = ""
 print("got Classification")
@@ -63,15 +94,107 @@ for cluster in sctype_scores['cluster'].unique():
 # Plot the UMAP with sctype_classification as labels
 sc.pl.umap(adata,
            color=['sctype_classification','sample'],
-           wspace=4,#Horizontal Space between Panels
-           size=2,
+           #wspace=1,#Horizontal Space between Panels
+           size=8,#Dot-Size
            ncols=1,
            title=['UMAP with sctype_classification','UMAP coloured by sample'],
-           #show=False
+           legend_loc='right margin',
+           legend_fontsize=10,
+           show=False
            )
-
+# Modify the figure size
+plt.gcf().set_size_inches(15, 15)  # Adjust width and height
+#plt.subplots_adjust(left=0.2, right=0.85, top=0.9, bottom=0.2)  # Adjust margins
+#plt.savefig('UMAP_sctype_classification_resized.png', bbox_inches='tight', dpi=50)
+plt.show()
 # Access Matplotlib figure and modify
-#plt.gcf().set_size_inches(10, 12)  # Set figure dimensions
+#plt.gcf().set_size_inches(8, 12)  # Set figure dimensions
 #plt.subplots_adjust(left=0.2, right=0.8, top=0.9, bottom=0.2)
-#plt.savefig('UMAP_sctype_classification_full.png', bbox_inches='tight', dpi=300)
+#plt.savefig('UMAP_sctype_classification_full.png', bbox_inches='tight', dpi=50)
 #plt.show()
+
+# Import required libraries
+import pandas as pd
+import networkx as nx
+import matplotlib.pyplot as plt
+from matplotlib import cm
+
+# Prepare edges
+cL_results = cL_results.sort_values(by="cluster")  # Order by cluster
+edges = cL_results.copy()
+edges["type"] = edges["type"] + "_" + edges["cluster"].astype(str)
+edges["cluster"] = "cluster " + edges["cluster"].astype(str)
+edges = edges[["cluster", "type"]]
+edges.columns = ["from", "to"]
+edges.reset_index(drop=True, inplace=True)
+
+# Prepare nodes (level 1)
+nodes_lvl1 = sctype_scores[["cluster", "ncells"]].copy()
+nodes_lvl1["cluster"] = "cluster " + nodes_lvl1["cluster"].astype(str)
+nodes_lvl1["Colour"] = "#f1f1ef"
+nodes_lvl1["ord"] = 1
+nodes_lvl1["realname"] = nodes_lvl1["cluster"]
+
+# Prepare nodes (level 2)
+ccolss = [
+    "#5f75ae", "#92bbb8", "#64a841", "#e5486e", "#de8e06", "#eccf5a", "#b5aa0f",
+    "#e4b680", "#7ba39d", "#b15928", "#ffff99", "#6a3d9a", "#cab2d6", "#ff7f00",
+    "#fdbf6f", "#e31a1c", "#fb9a99", "#33a02c", "#b2df8a", "#1f78b4", "#a6cee3"
+]
+nodes_lvl2 = []
+
+for i, cluster in enumerate(cL_results["cluster"].unique()):
+    dt_tmp = cL_results[cL_results["cluster"] == cluster]
+    for _, row in dt_tmp.iterrows():
+        nodes_lvl2.append({
+            "cluster": f"{row['type']}_{row['cluster']}",
+            "ncells": row["scores"],
+            "Colour": ccolss[i],
+            "ord": 2,
+            "realname": row["type"]
+        })
+
+nodes_lvl2 = pd.DataFrame(nodes_lvl2)
+
+# Combine nodes
+nodes = pd.concat([nodes_lvl1, nodes_lvl2], ignore_index=True)
+nodes["ncells"] = nodes["ncells"].apply(lambda x: max(x, 1))  # Replace ncells < 1 with 1
+
+print(nodes.columns)
+# Merge with database
+files_db = pd.read_excel(r"D:\UKW\DataSets\sctypeDB\ScTypeDB_full.xlsx")[["cellName", "shortName"]].drop_duplicates()
+nodes = pd.merge(nodes, files_db, how="left", left_on="realname", right_on="cellName")
+nodes["shortName"].fillna(nodes["realname"], inplace=True)
+nodes = nodes[["cluster", "ncells", "Colour", "ord", "shortName", "realname"]]
+
+# Create graph
+G = nx.from_pandas_edgelist(edges, source="from", target="to", create_using=nx.DiGraph())
+nodes["unique_id"] = nodes["cluster"] + "_" + nodes.index.astype(str)
+nx.set_node_attributes(G, nodes.set_index("unique_id").to_dict("index"))
+
+# Visualize graph
+plt.figure(figsize=(10, 10))
+pos = nx.circular_layout(G)  # Circular layout for nodes
+colors = [data["Colour"] for _, data in G.nodes(data=True)]
+sizes = [data["ncells"] for _, data in G.nodes(data=True)]
+
+
+
+nx.draw_networkx_nodes(G, pos, node_color=colors, node_size=sizes, edgecolors="#D3D3D3", alpha=0.9)
+nx.draw_networkx_edges(G, pos, edge_color="#D3D3D3", alpha=0.7)
+nx.draw_networkx_labels(G, pos, labels=nx.get_node_attributes(G, "shortName"), font_size=10, font_color="black")
+
+plt.title("Circle Graph Visualization")
+plt.axis("off")
+plt.show()
+
+# (Optional) Add UMAP visualization
+# Assuming `pbmc` is a DataFrame with UMAP coordinates and cluster labels
+import seaborn as sns
+
+umap_cols = ["UMAP_1", "UMAP_2"]  # Replace with actual UMAP column names
+plt.figure(figsize=(8, 8))
+sns.scatterplot(#data=pbmc,
+                x=umap_cols[0], y=umap_cols[1], hue="cluster", palette=ccolss, s=50, alpha=0.8)
+plt.title("UMAP Dimensionality Reduction")
+plt.show()
