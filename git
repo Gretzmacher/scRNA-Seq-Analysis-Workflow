@@ -1,1 +1,532 @@
+#-----------------------------------------------------------------
+#------------------Libraries and Fig Parameters-------------------
+#-----------------------------------------------------------------
+import numpy as np
+import scanpy as sc
+import anndata as ad
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import os
+import scipy.sparse as sp
+from numba.core.typing.builtins import Print, PrintItem
+from scipy.sparse import issparse
+from scipy.sparse import csr_matrix
+import scanpy.external as sce
+import anndata2ri
+import logging
 
+import rpy2.rinterface_lib.callbacks as rcb
+import rpy2.robjects as ro
+#import rpy2.robjects as robjects
+from rpy2.robjects import pandas2ri
+from rpy2.robjects.packages import importr
+from rpy2.robjects import r
+import rpy2.robjects.numpy2ri
+from six import print_
+import h5py
+
+
+print("Libraries imported successfully.")
+
+sc.settings.verbosity = 0
+sc.settings.set_figure_params(dpi=50, facecolor="white", frameon=False) #Dots per inch: Resolution of Plot !300or more is publication quality
+
+#-----------------------------------------------------------------
+#-----------------------Loading All Files-------------------------
+#-----------------------------------------------------------------
+adata = sc.read_10x_h5(r"D:\UKW\DataSets\phs002371.v6.p1\1\Normal\HTA8_6001_001101_cellbender.h5")
+adata
+#matrix_files = [
+#        r"D:\UKW\DataSets\phs002371.v6.p1\1\Normal\HTA8_6001_001101_cellbender.h5",
+    #r"D:\UKW\DataSets\phs002371.v6.p1\2\Normal\HTA8_6002_001101_counts.mtx",
+    #r"D:\UKW\DataSets\phs002371.v6.p1\3\Normal\HTA8_6009_001101_counts.mtx",
+    #r"D:\UKW\DataSets\phs002371.v6.p1\4\Normal\HTA8_6011_001101_counts.mtx",
+    #r"D:\UKW\DataSets\phs002371.v6.p1\5\Normal\HTA8_6013_001101_counts.mtx",
+    #r"D:\UKW\DataSets\phs002371.v6.p1\6\Normal\HTA8_6016_001101_counts.mtx",
+    #r"D:\UKW\DataSets\phs002371.v6.p1\7\Normal\HTA8_6023_001101_counts.mtx",
+    #
+    #r"D:\UKW\DataSets\phs002371.v6.p1\1\Tumour\HTA8_6001_002101_counts.mtx",
+    #r"D:\UKW\DataSets\phs002371.v6.p1\2\Tumour\HTA8_6002_002101_counts.mtx",
+    #r"D:\UKW\DataSets\phs002371.v6.p1\3\Tumour\HTA8_6009_002101_counts.mtx",
+    #r"D:\UKW\DataSets\phs002371.v6.p1\4\Tumour\HTA8_6011_002101_counts.mtx",
+    #r"D:\UKW\DataSets\phs002371.v6.p1\5\Tumour\HTA8_6013_002101_counts.mtx",
+    #r"D:\UKW\DataSets\phs002371.v6.p1\6\Tumour\HTA8_6016_002101_counts.mtx",
+    #r"D:\UKW\DataSets\phs002371.v6.p1\7\Tumour\HTA8_6023_002101_counts.mtx",
+#]
+#genes_files = [
+#        r"D:\UKW\DataSets\phs002371.v6.p1\1\Normal\HTA8_6001_001101_genes.csv",
+    #r"D:\UKW\DataSets\phs002371.v6.p1\2\Normal\HTA8_6002_001101_genes.csv",
+    #r"D:\UKW\DataSets\phs002371.v6.p1\3\Normal\HTA8_6009_001101_genes.csv",
+    #r"D:\UKW\DataSets\phs002371.v6.p1\4\Normal\HTA8_6011_001101_genes.csv",
+    #r"D:\UKW\DataSets\phs002371.v6.p1\5\Normal\HTA8_6013_001101_genes.csv",
+    #r"D:\UKW\DataSets\phs002371.v6.p1\6\Normal\HTA8_6016_001101_genes.csv",
+    #r"D:\UKW\DataSets\phs002371.v6.p1\7\Normal\HTA8_6023_001101_genes.csv",
+    #
+    #r"D:\UKW\DataSets\phs002371.v6.p1\1\Tumour\HTA8_6001_002101_genes.csv",
+    #r"D:\UKW\DataSets\phs002371.v6.p1\2\Tumour\HTA8_6002_002101_genes.csv",
+    #r"D:\UKW\DataSets\phs002371.v6.p1\3\Tumour\HTA8_6009_002101_genes.csv",
+    #r"D:\UKW\DataSets\phs002371.v6.p1\4\Tumour\HTA8_6011_002101_genes.csv",
+    #r"D:\UKW\DataSets\phs002371.v6.p1\5\Tumour\HTA8_6013_002101_genes.csv",
+    #r"D:\UKW\DataSets\phs002371.v6.p1\6\Tumour\HTA8_6016_002101_genes.csv",
+    #r"D:\UKW\DataSets\phs002371.v6.p1\7\Tumour\HTA8_6023_002101_genes.csv",
+#]
+#barcodes_files = [
+#        r"D:\UKW\DataSets\phs002371.v6.p1\1\Normal\HTA8_6001_001101_barcodes.csv",
+    #r"D:\UKW\DataSets\phs002371.v6.p1\2\Normal\HTA8_6002_001101_barcodes.csv",
+    #r"D:\UKW\DataSets\phs002371.v6.p1\3\Normal\HTA8_6009_001101_barcodes.csv",
+    #r"D:\UKW\DataSets\phs002371.v6.p1\4\Normal\HTA8_6011_001101_barcodes.csv",
+    #r"D:\UKW\DataSets\phs002371.v6.p1\5\Normal\HTA8_6013_001101_barcodes.csv",
+    #r"D:\UKW\DataSets\phs002371.v6.p1\6\Normal\HTA8_6016_001101_barcodes.csv",
+    #r"D:\UKW\DataSets\phs002371.v6.p1\7\Normal\HTA8_6023_001101_barcodes.csv",
+    #
+    #r"D:\UKW\DataSets\phs002371.v6.p1\1\Tumour\HTA8_6001_002101_barcodes.csv",
+    #r"D:\UKW\DataSets\phs002371.v6.p1\2\Tumour\HTA8_6002_002101_barcodes.csv",
+    #r"D:\UKW\DataSets\phs002371.v6.p1\3\Tumour\HTA8_6009_002101_barcodes.csv",
+    #r"D:\UKW\DataSets\phs002371.v6.p1\4\Tumour\HTA8_6011_002101_barcodes.csv",
+    #r"D:\UKW\DataSets\phs002371.v6.p1\5\Tumour\HTA8_6013_002101_barcodes.csv",
+    #r"D:\UKW\DataSets\phs002371.v6.p1\6\Tumour\HTA8_6016_002101_barcodes.csv",
+    #r"D:\UKW\DataSets\phs002371.v6.p1\7\Tumour\HTA8_6023_002101_barcodes.csv",
+#]
+#for i in range(1):
+#    if os.path.exists(matrix_files[i]):
+#        print(f"Matrix file {i+1} exists.")
+#    else:
+#        print(f"Matrix file {i+1} does not exist.")
+#    if os.path.exists(genes_files[i]):
+#        print(f"Genes file {i+1} exists.")
+#    else:
+#        print(f"Genes file {i+1} does not exist.")
+#    if os.path.exists(barcodes_files[i]):
+#        print(f"Barcodes file {i+1} exists.")
+#    else:
+#        print(f"Barcodes file {i+1} does not exist.")
+#adatas = [] # Initialise List
+gene_lists = [] # Initialise List of Gene names
+
+#-------------------Loading Matrix----------------------
+for i in range(1):
+#    #adata = sc.read_mtx(matrix_files[i]).transpose() #If needs transposing
+#    adata = sc.read_mtx(matrix_files[i])
+#    print(f"Shape of Matrix {i+1} (n_cells, n_genes): {adata.shape}")
+#    print(f"Matrix {i+1} Loaded Successfully")
+
+    #---------Loading Gene Names and Annotating Genes in Matrix--------
+#    gene_names = pd.read_csv(genes_files[i], header=None, sep=',', usecols=[1], names=['gene_name'])
+#    if adata.shape[1] == gene_names.shape[0]:
+#        adata.var_names = gene_names['gene_name'].values
+#    else:
+#        print(f"Warning: Mismatch in number of genes for sample {i+1}")
+#    adata.var_names_make_unique()
+#    print("Genes Successfully Annotated")
+
+    # Collect the gene names
+    gene_lists.append(set(adata.var_names))
+
+    #---------Loading Cell Barcodes and Annotating Cells in Matrix--------
+#    cell_barcodes = pd.read_csv(barcodes_files[i], header=None, sep=',')
+#    #check for duplicates
+#    if cell_barcodes[0].duplicated().any():
+#        print(f"Warning: Duplicate barcodes found in sample {i+1}")
+#    #select only the first n_obs to match the number of cells in adata
+#    cell_barcodes = cell_barcodes[0].values[:adata.n_obs]
+
+#    adata.obs_names = [f"{barcode}_sample_{i+1}" for barcode in cell_barcodes]
+#    adata.obs_names_make_unique()
+#    print("Cells Successfully Annotated")
+
+    #----------------------------Adding sample----------------------------
+    adata.obs['sample'] = f'sample_{i+1}'
+#    adatas.append(adata) #Append the adata to the list
+
+adata.var_names_make_unique()
+adata
+
+#-------------------Calculating Shared Genes--------------------------
+
+#-----------------------------------------------------------------
+#-----------------------Computing Attributes----------------------
+#-----------------------------------------------------------------
+print(adata.obs.columns)
+adata.obs['sample'] = adata.obs['sample'].astype('category')
+adata.var["mt"] = adata.var_names.str.startswith('MT-')
+adata.var["ribo"] = adata.var_names.str.startswith(('RPS', 'RPL'))
+adata.var["hb"] = adata.var_names.str.contains('HB[^(P)]')
+sc.pp.calculate_qc_metrics(
+    adata, qc_vars=["mt", "ribo", "hb"], inplace=True, percent_top=[20], log1p=True
+)
+
+cell_cycle_genes = {
+    'G1/S': ['MCM5', 'PCNA', 'TYMS', 'FEN1', 'MCM2', 'MCM4', 'RRM1', 'UNG', 'GINS2', 'MCM6', 'CDCA7', 'DTL', 'PRIM1', 'UHRF1', 'HELLS', 'RFC2', 'RPA2', 'NASP', 'RAD51AP1', 'GMNN', 'WDR76', 'SLBP', 'CCNE2', 'UBR7', 'POLD3', 'MSH2', 'ATAD2', 'RAD51', 'RRM2', 'CDC45', 'CDC6', 'EXO1', 'TIPIN', 'DSCC1', 'BLM', 'CASP8AP2', 'USP1', 'CLSPN', 'POLA1', 'CHAF1B', 'BRIP1', 'E2F8'],
+    'G2/M': ['HMGB2', 'CDK1', 'NUSAP1', 'UBE2C', 'BIRC5', 'TPX2', 'TOP2A', 'NDC80', 'CKS2', 'NUF2', 'CKS1B', 'MKI67', 'TMPO', 'CENPF', 'TACC3', 'SMC4', 'CCNB2', 'CKAP2L', 'CKAP2', 'AURKB', 'BUB1', 'KIF11', 'ANP32E', 'TUBB4B', 'GTSE1', 'KIF20B', 'HJURP', 'CDCA3', 'CDC20', 'TTK', 'CDC25C', 'KIF2C', 'RANGAP1', 'NCAPD2', 'DLGAP5', 'CDCA2', 'CDCA8', 'ECT2', 'KIF23', 'HMMR', 'AURKA', 'PSRC1', 'ANLN', 'LBR', 'CKAP5', 'CENPE', 'CTCF', 'NEK2', 'G2E3', 'GAS2L3', 'CBX5', 'CENPA']
+}
+sc.tl.score_genes_cell_cycle(adata,
+                             s_genes=cell_cycle_genes['G1/S'],
+                             g2m_genes=cell_cycle_genes['G2/M'],
+                             )
+
+sex_genes = ['SRY', 'ZFY', 'TSPY1', 'XIST', 'TSIX', 'KDM5C']
+sex_genes_in_data = [gene for gene in sex_genes if gene in adata.var_names]
+adata.obs['sex_gene_expression'] = adata[:, sex_genes_in_data].X.sum(axis=1)
+
+adata.var['n_cells'] = (adata.X > 0).sum(axis=0).A1
+adata.var['log_n_cells'] = np.log1p(adata.var['n_cells'])
+# Create a frequency table
+gene_counts = pd.Series(adata.var['n_cells'])
+frequency_table = gene_counts.value_counts().sort_index()
+print("Frequency Table of Genes across Cells:")
+print(frequency_table.head(20)) # See the first few values
+
+print(f"Total Counts:")
+print(adata.obs['total_counts'].describe())
+print(f"Genes by Counts:")
+print(adata.obs['n_genes_by_counts'].describe())
+
+#-----------------------------------------------------------------
+#0a--------------------------Histogramm---------------------------
+#-----------------------------------------------------------------
+fig, axes = plt.subplots(1, 3, figsize=(18, 6))
+
+# How Many Times Do Cells have Certain num Genes
+sns.histplot(adata.obs['log1p_total_counts'], kde=True, ax=axes[0], bins=50, kde_kws={'bw_adjust': 0.5})
+axes[0].set_title("Log-transformed Total Counts")
+axes[0].set_xlabel("Log(Total Counts)")  # Adding axis labels
+axes[0].set_ylabel("Frequency")
+
+# How Many Times Do Cells have certain num Different Genes
+sns.histplot(adata.obs['log1p_n_genes_by_counts'], kde=True, ax=axes[1], bins=50, kde_kws={'bw_adjust': 0.5})
+axes[1].set_title("Log-transformed Genes by Counts")
+axes[1].set_xlabel("Log(Genes by Counts)")  # Adding axis labels
+axes[1].set_ylabel("Frequency")
+
+sns.barplot(x=frequency_table.index[:25], y=frequency_table.values[:25])  # Limit to the first 100 cells for clarity
+plt.title("Gene Expression Across Cells")
+plt.xlabel("Number of Cells Expressing the Gene")
+plt.ylabel("Number of Genes")
+plt.xticks(rotation=90)  # Rotate x-axis labels if needed
+
+plt.tight_layout()  # Adjust layout to avoid overlap
+plt.show()
+print("Plotted 0a")
+
+# Convert the sparse matrix to memory (fully loaded) before applying the filter
+# Ensure the data matrix `adata.X` is converted correctly
+print(f"Type of adata.X: {type(adata.X)}")
+
+#-----------------------------------------------------------------
+#---------------------------Prefiltering--------------------------
+#-----------------------------------------------------------------
+print(f"Initial dataset shape: {adata.shape}")
+#sc.pp.filter_cells(adata, min_genes=200)#Remove cells with less than 200 different genes
+#sc.pp.filter_genes(adata, min_cells=3)#Remove genes expressed in less than 3 cells (0)
+#Here to avoid Error: high is out of bounds for int32
+
+
+#-----------------------------------------------------------------
+#-------------------------Doublet Deletion------------------------
+#-----------------------------------------------------------------
+#sc.pp.scrublet(adata, batch_key="sample")
+#print(adata.obs.index[:10])  # Check index format for consistency
+#print(adata.obs.columns)
+#print(f"Filtered dataset shape: {adata.shape}")
+
+#-----------------------------------------------------------------
+#0b--------------------------Histogramm---------------------------
+#-----------------------------------------------------------------
+fig, axes = plt.subplots(1, 2, figsize=(12, 6))
+
+# Plot total counts
+sns.histplot(adata.obs['log1p_total_counts'], kde=True, ax=axes[0], bins=50, kde_kws={'bw_adjust': 0.5})
+axes[0].set_title("Log-transformed Total Counts")
+axes[0].set_xlabel("Log(Total Counts)")  # Adding axis labels
+axes[0].set_ylabel("Frequency")
+
+# Plot genes by counts
+sns.histplot(adata.obs['log1p_n_genes_by_counts'], kde=True, ax=axes[1], bins=50, kde_kws={'bw_adjust': 0.5})
+axes[1].set_title("Log-transformed Genes by Counts")
+axes[1].set_xlabel("Log(Genes by Counts)")  # Adding axis labels
+axes[1].set_ylabel("Frequency")
+
+plt.tight_layout()  # Adjust layout to avoid overlap
+plt.show()
+Print("Plotted 0b")
+
+#-----------------------------------------------------------------
+#0c---------------------------Histogram---------------------------
+#-----------------------------------------------------------------
+print(f"Before Outlier Deletion. Cells: {adata.n_obs}, Genes: {adata.n_vars}")
+#0c 1) Each gene has expression in at least 3 cells, Cells have at least 200 genes, No Doublets
+
+fig, axes = plt.subplots(3, 2, figsize=(10, 15))
+sns.histplot(adata.obs['log1p_total_counts'], kde=True, ax=axes[0, 0])
+axes[0, 0].set_title("log1p_total_counts")
+
+sns.histplot(adata.obs['log1p_n_genes_by_counts'], kde=True, ax=axes[0, 1])
+axes[0, 1].set_title("log1p_n_genes_by_counts")
+
+sns.histplot(adata.obs['pct_counts_mt'], kde=True, ax=axes[1, 0])
+axes[1, 0].set_title("pct_counts_mt")
+
+sns.histplot(adata.obs['pct_counts_ribo'], kde=True, ax=axes[1, 1])
+axes[1, 1].set_title("pct_counts_ribo")
+
+sns.histplot(adata.obs['pct_counts_hb'], kde=True, ax=axes[2, 0])
+axes[2, 0].set_title("pct_counts_hb")
+
+plt.tight_layout() #Adjust layout to avoid overlap
+plt.show()
+PrintItem("Plotted 0c")
+
+p1 = sns.displot(adata.obs["log1p_total_counts"], bins=100, kde=False)
+# sc.pl.violin(adata, 'total_counts')
+p2 = sc.pl.violin(adata, "pct_counts_mt")
+p3 = sc.pl.scatter(adata, "log1p_total_counts", "n_genes_by_counts", color="pct_counts_mt")
+
+#-----------------------------------------------------------------
+#-------------------------Outlier Deletion------------------------
+#-----------------------------------------------------------------
+from scipy.stats import median_abs_deviation
+#def is_outlier(adata, metric: str, nmads: int):
+#    M = adata.obs[metric]
+#    outlier = (M < np.median(M) - nmads * median_abs_deviation(M)) | (
+#            M > np.median(M) + nmads * median_abs_deviation(M)
+#    )
+#    return outlier
+
+adata.obs["outlier"] = (
+adata.obs["pct_counts_mt"] > 20) | (
+adata.obs["pct_counts_ribo"] > 35) | (
+adata.obs["pct_counts_hb"] > 3)
+
+adata.obs.outlier.value_counts()
+adata = adata[~adata.obs.outlier].copy()
+print(f"After Outlier Deletion. Cells: {adata.n_obs}, Genes: {adata.n_vars}")
+#0d After Filtering. Cells: 74763, Genes: 33538+
+
+#-----------------------------------------------------------------
+#2---------------------------Scatter Plot-------------------------
+#-----------------------------------------------------------------
+sc.pl.scatter(adata, "total_counts", "n_genes_by_counts", color="pct_counts_mt")
+plt.show() #% of MT-Genes in Cell
+Print("Plotted 2: Scatter")
+
+#-----------------------------------------------------------------
+#0d---------------------------Histogramm--------------------------
+#-----------------------------------------------------------------
+fig, axes = plt.subplots(3, 2, figsize=(10, 15))
+sns.histplot(adata.obs['log1p_total_counts'], kde=True, ax=axes[0, 0])
+axes[0, 0].set_title("log1p_total_counts")
+
+sns.histplot(adata.obs['log1p_n_genes_by_counts'], kde=True, ax=axes[0, 1])
+axes[0, 1].set_title("log1p_n_genes_by_counts")
+
+sns.histplot(adata.obs['pct_counts_mt'], kde=True, ax=axes[1, 0])
+axes[1, 0].set_title("pct_counts_mt")
+
+sns.histplot(adata.obs['pct_counts_ribo'], kde=True, ax=axes[1, 1])
+axes[1, 1].set_title("pct_counts_ribo")
+
+sns.histplot(adata.obs['pct_counts_hb'], kde=True, ax=axes[2, 0])
+axes[2, 0].set_title("pct_counts_hb")
+
+plt.tight_layout()
+plt.show()
+Print("Plotted 0d")
+
+
+#-----------------------------------------------------------------
+#1---------------------------Violin Plot--------------------------
+#-----------------------------------------------------------------
+#fig, axes = plt.subplots(3, 1, figsize=(5, 15))
+#palette = sns.color_palette("husl", len(adata.obs['sample'].unique()))  # Use a qualitative color palette
+###???Align colours with Cluster Colours later
+#Panel 1: Num of diff Genes per Cell
+#sc.pl.violin(
+#    adata,
+#    keys=['n_genes_by_counts'],
+#    jitter=0.4,
+#    ax=axes[0],
+#    groupby='sample',  #Group by sample to color dots
+#    palette=palette,
+#    show=False
+#)
+#Panel 2: Total num of Genes per Cell
+#sc.pl.violin(
+#    adata,
+#    keys=['total_counts'],
+#    jitter=0.4,
+#    ax=axes[1],
+#    groupby='sample',  #Group by sample to color dots
+#    palette=palette,
+#    show=False
+#)
+#axes[1].set_yscale('log') #Apply logScale to Y-Axis
+#Panel 3: Num of MT-Genes per Cell
+#sc.pl.violin(
+#    adata,
+#    keys=['pct_counts_mt'],
+#    jitter=0.4,
+#    ax=axes[2],
+#    groupby='sample',#Group by sample to color dots
+#    palette=palette,
+#    show=False
+#)
+#plt.tight_layout() #Adjust layout to avoid overlap
+#plt.show()
+#Print("Plotted 1: Violin")
+
+#-----------------------------------------------------------------
+#--------------Normalisation and Soup-Correction------------------
+#-----------------------------------------------------------------
+importr('Matrix')
+rcb.logger.setLevel(logging.ERROR)
+ro.pandas2ri.activate()
+anndata2ri.activate()
+ro.numpy2ri.activate()
+#rpy2.robjects.numpy2ri.activate()
+#rpy2.ipython.activate() #Only for Jupyter Notebooks
+
+print("So far so good")
+ro.r('library(SoupX)')
+ro.r('library(Matrix)')
+print("loaded")
+adata_pp = adata.copy()  # Create a raw copy of the data
+adata_pp.X = adata_pp.X.astype('float64')
+print(adata_pp.X.dtype)  # This should be 'float64' or 'float32' for most operations
+#adata_pp.X = adata_pp.X.astype('float64')
+#print(adata_pp.X.dtype)  # This should be 'float64' or 'float32' for most operations
+
+sc.pp.normalize_per_cell(adata_pp)
+sc.pp.log1p(adata_pp)#logNum of Gene Expressions
+
+sc.pp.pca(adata_pp)
+sc.pp.neighbors(adata_pp)
+sc.tl.leiden(adata_pp, key_added="soupx_groups")
+# Preprocess variables for SoupX
+#soupx_groups = adata_pp.obs["soupx_groups"]
+ro.globalenv["soupx_groups"] = adata_pp.obs["soupx_groups"]
+print("got this")
+del adata_pp
+
+#cells = adata.obs_names
+ro.globalenv["cells"] = adata.obs_names
+#genes = adata.var_names
+ro.globalenv["genes"] = adata.var_names
+#data = adata.X.T
+# Convert the matrix to signed 32-bit integers
+adata.X = adata.X.astype('float64')  # Cast to signed integer (int32)
+ro.globalenv["data"] = ro.r['Matrix'](adata.X.T)
+print(adata.X.shape)  # Print original matrix dimensions
+print(adata.X.T.shape)  # Print transposed matrix dimensions
+print("put")
+
+ro.r('''
+library(Matrix)
+class(data)  # Check the class of the data in R
+
+data_tod <- readMM("D:/UKW/DataSets/phs002371.v6.p1/1/Normal/HTA8_6001_001101_counts.mtx")
+genes <- read.csv("D:/UKW/DataSets/phs002371.v6.p1/1/Normal/HTA8_6001_001101_genes.csv", header=FALSE)$V1
+barcodes <- read.csv("D:/UKW/DataSets/phs002371.v6.p1/1/Normal/HTA8_6001_001101_barcodes.csv", header=FALSE)$V1
+
+data_tod <- t(data_tod)
+rownames(data_tod) <- genes
+colnames(data_tod) <- barcodes
+
+print(dim(data))  # Before filtering
+print(dim(data_tod))  # Before filtering
+
+# ensure correct sparse format for table of counts and table of droplets
+data <- as(data, "sparseMatrix")
+data_tod <- as(data_tod, "sparseMatrix")
+
+# Generate SoupChannel Object for SoupX
+sc = SoupChannel(data_tod, data, calcSoupProfile = FALSE)
+print("Sofa Sofi")
+
+# Add extra meta data to the SoupChannel object
+soupProf = data.frame(row.names = rownames(data), est = rowSums(data)/sum(data), counts = rowSums(data))
+
+# Find common genes
+common_genes = intersect(rownames(data), rownames(soupProf))
+
+# Identify genes not found in 'data'
+missing_in_data = set(rownames(soupProf)) - set(rownames(data))  # Genes in soupProf not in data
+print(f"Number of genes in soupProf not found in data: {len(missing_in_data)}")
+print(f"Missing genes: {list(missing_in_data)[:10]}...")  # Print the first 10 missing genes for inspection
+
+# Identify genes not found in 'soupProf'
+missing_in_soupProf = set(rownames(data)) - set(rownames(soupProf))  # Genes in data not in soupProf
+print(f"Number of genes in data not found in soupProf: {len(missing_in_soupProf)}")
+print(f"Missing genes: {list(missing_in_soupProf)[:10]}...")  # Print the first 10 missing genes for inspection
+
+# Optionally, you can also identify genes that are common but may be in different orders
+common_genes = list(common_genes)
+
+sc = setSoupProfile(sc, soupProf)
+# Set cluster information in SoupChannel
+sc = setClusters(sc, soupx_groups)
+
+# Estimate contamination fraction
+sc  = autoEstCont(sc, doPlot=FALSE)
+# Infer corrected table of counts and rount to integer
+out = adjustCounts(sc, roundToInt = TRUE)
+''')
+print("A1")
+
+# Retrieve the corrected count matrix from R
+out_corrected = ro.globalenv["out"]
+
+adata.layers["counts"] = adata.X
+adata.layers["soupX_counts"] = out_corrected.T
+adata.X = adata.layers["soupX_counts"]
+print(f"Total number of genes: {adata.n_vars}")
+
+# Min 20 cells - filters out 0 count genes
+#sc.pp.filter_genes(adata, min_cells=20)
+#print(f"Number of genes after cell filter: {adata.n_vars}")
+
+
+# Before normalising
+print(f"Minimum value before normalisation: {np.min(adata.X)}")
+print(f"Maximum value before normalisation: {np.max(adata.X)}")
+#sc.pp.normalize_total(adata, target_sum=1e4) #Normalising to Cells having same Total Expression
+
+print(adata.X[:5,:5])
+print("Data Normalised and log-transformed")
+#After normalising
+print(f"Minimum value after normalising: {np.min(adata.X)}")
+print(f"Maximum value after normalising: {np.max(adata.X)}")
+#Minimum value after normalization: 0.0
+#Maximum value after normalization: 11.304033279418945
+print(adata.obs['total_counts'].mean())
+
+#-----------------------------------------------------------------
+#---------------------------Save Progress-------------------------
+#-----------------------------------------------------------------
+adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat1NorPP1_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat2NorPP0_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat3NorPP0_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat4NorPP0_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat5NorPP0_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat6NorPP0_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat7NorPP0_data.h5ad")
+
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat1TumPP0_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat2TumPP0_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat3TumPP0_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat4TumPP0_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat5TumPP0_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat6TumPP0_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat7TumPP0_data.h5ad")
+
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat1PP0_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat2PP0_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat3PP0_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat4PP0_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat5PP0_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat6PP0_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat7PP0_data.h5ad")
+#adata.write("7_Tum_PP")
+#adata.write("7_Nor_PP")
+#adata.write("14_PP")
+print("PP done")
