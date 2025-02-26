@@ -439,7 +439,7 @@ print(adata.X.shape)  # Print original matrix dimensions
 #print(adata.X.T.shape)  # Print transposed matrix dimensions
 print("put")
 
-adata_raw = sc.read_10x_h5(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat1raw.h5ad")
+adata_raw = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat1raw.h5ad")
 #= sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat2raw.h5ad")
 #= sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat3raw.h5ad")
 #= sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat4raw.h5ad")
