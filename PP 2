@@ -1,0 +1,141 @@
+import logging
+
+import anndata2ri
+import matplotlib.pyplot as plt
+import numpy as np
+import rpy2.rinterface_lib.callbacks as rcb
+import rpy2.robjects as ro
+import scanpy as sc
+import seaborn as sns
+
+sc.settings.verbosity = 0
+sc.settings.set_figure_params(
+    dpi=80,
+    facecolor="white",
+    frameon=False,
+)
+
+rcb.logger.setLevel(logging.ERROR)
+ro.pandas2ri.activate()
+anndata2ri.activate()
+
+#%load_ext rpy2.ipython
+ro.r('library(scry)')
+#ro.r('library(devianceFeaturerSelection)')
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat1NorPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat2NorPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat3NorPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat4NorPP0_data.h5ad")
+adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat5NorPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat6NorPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat7NorPP0_data.h5ad")
+
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat1TumPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat2TumPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat3TumPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat4TumPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat5TumPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat6TumPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat7TumPP0_data.h5ad")
+
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat1PP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat2PP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat3PP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat4PP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat5PP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat6PP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat6PP0_data.h5ad")
+
+#-----------------------------------------------------------------
+#2------------------------Feature Selection-----------------------
+#-----------------------------------------------------------------
+ro.globalenv["adata"] = adata
+ro.r('''
+sce = devianceFeatureSelection(adata, assay="X")
+''')
+binomial_deviance = ro.r("rowData(sce)$binomial_deviance").T
+
+idx = binomial_deviance.argsort()[-4000:]
+mask = np.zeros(adata.var_names.shape, dtype=bool)
+mask[idx] = True
+
+adata.var["highly_deviant"] = mask
+adata.var["binomial_deviance"] = binomial_deviance
+
+sc.pp.highly_variable_genes(adata, layer="scran_normalization")
+
+ax = sns.scatterplot(
+    data=adata.var, x="means", y="dispersions", hue="highly_deviant", s=5
+)
+ax.set_xlim(None, 1.5)
+ax.set_ylim(None, 3)
+plt.show()
+print("Features")
+
+#-----------------------------------------------------------------
+#--------------------------------PCA------------------------------
+#-----------------------------------------------------------------
+adata.X = adata.layers["log1p_norm"]
+
+# setting highly variable as highly deviant to use scanpy 'use_highly_variable' argument in sc.pp.pca
+adata.var["highly_variable"] = adata.var["highly_deviant"]
+sc.pp.pca(adata, svd_solver="arpack", use_highly_variable=True)
+
+sc.pl.pca_scatter(adata, color="total_counts")
+
+#-----------------------------------------------------------------
+#------------------------------t-SNE------------------------------
+#-----------------------------------------------------------------
+sc.tl.tsne(adata, use_rep="X_pca")
+sc.pl.tsne(adata, color="total_counts")
+
+#-----------------------------------------------------------------
+#------------------------------UMAPs------------------------------
+#-----------------------------------------------------------------
+sc.pp.neighbors(adata)
+sc.tl.umap(adata)
+
+sc.pl.umap(adata, color="total_counts")
+
+sc.pl.umap(
+    adata,
+    color=["total_counts", "pct_counts_mt", "scDblFinder_score", "scDblFinder_class"],
+)
+#-----------------------------------------------------------------
+#-----------------------------Regression--------------------------
+#-----------------------------------------------------------------
+#adata = adata[adata.X.sum(axis=1) > 0].copy() #out cells with 0 gene expression
+#sc.pp.regress_out(adata, keys=['total_counts', 'n_genes_by_counts'])
+#print(f"After Regression. Cells: {adata.n_obs}, Genes: {adata.n_vars}")
+#print(adata.obs['total_counts'].mean())
+
+#-----------------------------------------------------------------
+#---------------------------Save Progress-------------------------
+#-----------------------------------------------------------------
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat1NorPP_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat2NorPP_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat3NorPP_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat4NorPP_data.h5ad")
+adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat5NorPP_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat6NorPP_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat7NorPP_data.h5ad")
+
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat1TumPP_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat2TumPP_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat3TumPP_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat4TumPP_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat5TumPP_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat6TumPP_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat7TumPP_data.h5ad")
+
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat1PP_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat2PP_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat3PP_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat4PP_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat5PP_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat6PP_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat7PP_data.h5ad")
+#adata.write("7_Tum_PP")
+#adata.write("7_Nor_PP")
+#adata.write("14_PP")
+print("PP done")
