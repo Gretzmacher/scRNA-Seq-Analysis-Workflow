@@ -1,0 +1,193 @@
+import warnings
+
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+from numba.core.errors import NumbaDeprecationWarning
+
+warnings.simplefilter("ignore", category=NumbaDeprecationWarning)
+
+import rpy2.robjects as ro
+import urllib.request
+from pathlib import Path
+
+import celltypist
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import scanpy as sc
+#import scarches as sca
+import seaborn as sns
+from celltypist import models
+from scipy.sparse import csr_matrix
+
+warnings.filterwarnings("ignore", category=pd.errors.PerformanceWarning)
+sc.settings.verbosity = 0
+sc.settings.set_figure_params(dpi=80, facecolor="white", frameon=False)
+
+#%load_ext rpy2.ipython
+ro.r('library(scry)')
+#ro.r('library(devianceFeaturerSelection)')
+
+#-----------------------------------------------------------------
+#-----------------------Loading All Files-------------------------
+#-----------------------------------------------------------------
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat1NorPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat2NorPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat3NorPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat4NorPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat5NorPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat6NorPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat7NorPP0_data.h5ad")
+
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat1TumPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat2TumPP0_data.h5ad")
+adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat3TumPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat4TumPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat5TumPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat6TumPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat7TumPP0_data.h5ad")
+
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat1PP_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat2PP_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat3PP_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat4PP_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat5PP_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat6PP_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat6PP_data.h5ad")
+
+#-----------------------------------------------------------------
+#2----------------------------Leiden------------------------------
+#-----------------------------------------------------------------
+#sc.pp.neighbors(adata, n_pcs=30)
+#sc.tl.umap(adata)
+
+#sc.tl.leiden(adata)
+
+#sc.tl.leiden(adata, key_added="leiden_res0_25", resolution=0.25)
+#sc.tl.leiden(adata, key_added="leiden_res0_5", resolution=0.5)
+#sc.tl.leiden(adata, key_added="leiden_res1", resolution=1.0)
+
+#sc.pl.umap(
+#    adata,
+#    color=["leiden_res0_25", "leiden_res0_5", "leiden_res1"],
+#    legend_loc="on data",
+#)
+
+#adata.layers["counts"] = adata.X
+#adata.X = adata.layers["scran_normalization"]
+#adata.var["highly_variable"] = adata.var["highly_deviant"]
+#sc.tl.pca(adata, n_comps=50, use_highly_variable=True)
+#sc.pp.neighbors(adata)
+#sc.tl.umap(adata)
+
+#-----------------------------------------------------------------
+#2-------------------Celltypist Aut Annotation--------------------
+#-----------------------------------------------------------------
+sc.pp.neighbors(adata, n_pcs=30)
+sc.tl.umap(adata)
+sc.tl.leiden(adata)
+
+#sc.tl.leiden(adata, key_added="leiden_res0_25", resolution=0.25)
+#sc.tl.leiden(adata, key_added="leiden_res0_5", resolution=0.5)
+sc.tl.leiden(adata, key_added="leiden_res1", resolution=0.5)
+
+adata_celltypist = adata.copy()  # make a copy of our adata
+adata_celltypist.X = adata.layers["counts"]  # set adata.X to raw counts
+sc.pp.normalize_total(
+    adata_celltypist, target_sum=10**4
+)  # normalize to 10,000 counts per cell
+sc.pp.log1p(adata_celltypist)  # log-transform
+# make .X dense instead of sparse, for compatibility with celltypist:
+adata_celltypist.X = adata_celltypist.X.toarray()
+
+models.download_models(
+    force_update=True, model=["Human_Colorectal_Cancer.pkl", "Cells_Intestinal_Tract.pkl"]
+)
+
+# Load the AnnData object
+model_CRC = models.Model.load(model="Human_Colorectal_Cancer.pkl")
+model_GI = models.Model.load(model="Cells_Intestinal_Tract.pkl")
+model_CRC.cell_types
+model_GI.cell_types
+
+
+prediction_CRC = celltypist.annotate(
+    adata_celltypist, model=model_CRC, majority_voting=True)
+prediction_CRC_adata = prediction_CRC.to_adata()
+
+adata.obs["celltypist_cell_label_CRC"] = prediction_CRC_adata.obs.loc[
+    adata.obs.index, "majority_voting"
+]
+adata.obs["celltypist_conf_score_CRC"] = prediction_CRC_adata.obs.loc[
+    adata.obs.index, "conf_score"
+]
+
+prediction_GI = celltypist.annotate(
+    adata_celltypist, model=model_GI, majority_voting=True)
+prediction_GI_adata = prediction_GI.to_adata()
+
+adata.obs["celltypist_cell_label_GI"] = prediction_GI_adata.obs.loc[
+    adata.obs.index, "majority_voting"
+]
+adata.obs["celltypist_conf_score_GI"] = prediction_GI_adata.obs.loc[
+    adata.obs.index, "conf_score"
+]
+
+#Examine the correspondence between CellTypist predictions (`use_as_prediction`) and manual annotations (`use_as_reference`).
+#Here, `predicted_labels` from `predictions.predicted_labels` is used as the prediction result from CellTypist.
+#`use_as_prediction` can be also set as `majority_voting` (see `1.7.`).
+#celltypist.dotplot(prediction_CRC, use_as_reference = 'leiden', use_as_prediction = 'predicted_labels')
+
+sc.pl.umap(
+    adata,
+    color=["leiden_res1","celltypist_cell_label_CRC", "celltypist_conf_score_CRC"],
+    frameon=False,
+    sort_order=False,
+    wspace=1,
+)
+sc.pl.dendrogram(adata, groupby="celltypist_cell_label_CRC")
+
+#Examine the correspondence between CellTypist predictions (`use_as_prediction`) and manual annotations (`use_as_reference`).
+#Here, `predicted_labels` from `predictions.predicted_labels` is used as the prediction result from CellTypist.
+#`use_as_prediction` can be also set as `majority_voting` (see `1.7.`).
+#celltypist.dotplot(prediction_GI, use_as_reference = 'leiden', use_as_prediction = 'predicted_labels')
+
+sc.pl.umap(
+    adata,
+    color=["celltypist_cell_label_GI", "celltypist_conf_score_GI"],
+    frameon=False,
+    sort_order=False,
+    wspace=1,
+)
+sc.pl.dendrogram(adata, groupby="celltypist_cell_label_GI")
+
+#-----------------------------------------------------------------
+#---------------------------Save Progress-------------------------
+#-----------------------------------------------------------------
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat1NorType_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat2NorType_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat3NorType_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat4NorType_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat5NorManType_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat6NorType_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat7NorType_data.h5ad")
+
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat1TumType_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat2TumType_data.h5ad")
+adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat3TumType_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat4TumType_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat5TumType_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat6TumType_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat7TumType_data.h5ad")
+
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat1Type_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat2Type_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat3Type_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat4Type_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat5Type_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat6Type_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat7Type_data.h5ad")
+#adata.write("7_Tum_PP")
+#adata.write("7_Nor_PP")
+#adata.write("14_PP")
+print("PP done")
