@@ -40,7 +40,7 @@ sc.settings.set_figure_params(dpi=50, facecolor="white", frameon=False) #Dots pe
 #-----------------------------------------------------------------
 matrix_files = [
     # r"D:\UKW\DataSets\phs002371.v6.p1\1\Normal\HTA8_6001_001101_cellbender.h5",
-    r"D:\UKW\DataSets\phs002371.v6.p1\1\Normal\HTA8_6001_001101_counts.mtx",
+    #r"D:\UKW\DataSets\phs002371.v6.p1\1\Normal\HTA8_6001_001101_counts.mtx",
     #r"D:\UKW\DataSets\phs002371.v6.p1\2\Normal\HTA8_6002_001101_counts.mtx",
     #r"D:\UKW\DataSets\phs002371.v6.p1\3\Normal\HTA8_6009_001101_counts.mtx",
     #r"D:\UKW\DataSets\phs002371.v6.p1\4\Normal\HTA8_6011_001101_counts.mtx",
@@ -50,14 +50,14 @@ matrix_files = [
     #
     #r"D:\UKW\DataSets\phs002371.v6.p1\1\Tumour\HTA8_6001_002101_counts.mtx",
     #r"D:\UKW\DataSets\phs002371.v6.p1\2\Tumour\HTA8_6002_002101_counts.mtx",
-    #r"D:\UKW\DataSets\phs002371.v6.p1\3\Tumour\HTA8_6009_002101_counts.mtx",
+    r"D:\UKW\DataSets\phs002371.v6.p1\3\Tumour\HTA8_6009_002101_counts.mtx",
     #r"D:\UKW\DataSets\phs002371.v6.p1\4\Tumour\HTA8_6011_002101_counts.mtx",
     #r"D:\UKW\DataSets\phs002371.v6.p1\5\Tumour\HTA8_6013_002101_counts.mtx",
     #r"D:\UKW\DataSets\phs002371.v6.p1\6\Tumour\HTA8_6016_002101_counts.mtx",
     #r"D:\UKW\DataSets\phs002371.v6.p1\7\Tumour\HTA8_6023_002101_counts.mtx",
 ]
 genes_files = [
-    r"D:\UKW\DataSets\phs002371.v6.p1\1\Normal\HTA8_6001_001101_genes.csv",
+    #r"D:\UKW\DataSets\phs002371.v6.p1\1\Normal\HTA8_6001_001101_genes.csv",
     #r"D:\UKW\DataSets\phs002371.v6.p1\2\Normal\HTA8_6002_001101_genes.csv",
     #r"D:\UKW\DataSets\phs002371.v6.p1\3\Normal\HTA8_6009_001101_genes.csv",
     #r"D:\UKW\DataSets\phs002371.v6.p1\4\Normal\HTA8_6011_001101_genes.csv",
@@ -67,14 +67,14 @@ genes_files = [
     #
     #r"D:\UKW\DataSets\phs002371.v6.p1\1\Tumour\HTA8_6001_002101_genes.csv",
     #r"D:\UKW\DataSets\phs002371.v6.p1\2\Tumour\HTA8_6002_002101_genes.csv",
-    #r"D:\UKW\DataSets\phs002371.v6.p1\3\Tumour\HTA8_6009_002101_genes.csv",
+    r"D:\UKW\DataSets\phs002371.v6.p1\3\Tumour\HTA8_6009_002101_genes.csv",
     #r"D:\UKW\DataSets\phs002371.v6.p1\4\Tumour\HTA8_6011_002101_genes.csv",
     #r"D:\UKW\DataSets\phs002371.v6.p1\5\Tumour\HTA8_6013_002101_genes.csv",
     #r"D:\UKW\DataSets\phs002371.v6.p1\6\Tumour\HTA8_6016_002101_genes.csv",
     #r"D:\UKW\DataSets\phs002371.v6.p1\7\Tumour\HTA8_6023_002101_genes.csv",
 ]
 barcodes_files = [
-    r"D:\UKW\DataSets\phs002371.v6.p1\1\Normal\HTA8_6001_001101_barcodes.csv",
+    #r"D:\UKW\DataSets\phs002371.v6.p1\1\Normal\HTA8_6001_001101_barcodes.csv",
     #r"D:\UKW\DataSets\phs002371.v6.p1\2\Normal\HTA8_6002_001101_barcodes.csv",
     #r"D:\UKW\DataSets\phs002371.v6.p1\3\Normal\HTA8_6009_001101_barcodes.csv",
     #r"D:\UKW\DataSets\phs002371.v6.p1\4\Normal\HTA8_6011_001101_barcodes.csv",
@@ -84,7 +84,7 @@ barcodes_files = [
     #
     #r"D:\UKW\DataSets\phs002371.v6.p1\1\Tumour\HTA8_6001_002101_barcodes.csv",
     #r"D:\UKW\DataSets\phs002371.v6.p1\2\Tumour\HTA8_6002_002101_barcodes.csv",
-    #r"D:\UKW\DataSets\phs002371.v6.p1\3\Tumour\HTA8_6009_002101_barcodes.csv",
+    r"D:\UKW\DataSets\phs002371.v6.p1\3\Tumour\HTA8_6009_002101_barcodes.csv",
     #r"D:\UKW\DataSets\phs002371.v6.p1\4\Tumour\HTA8_6011_002101_barcodes.csv",
     #r"D:\UKW\DataSets\phs002371.v6.p1\5\Tumour\HTA8_6013_002101_barcodes.csv",
     #r"D:\UKW\DataSets\phs002371.v6.p1\6\Tumour\HTA8_6016_002101_barcodes.csv",
@@ -174,14 +174,14 @@ fig, axes = plt.subplots(3, 2, figsize=(10, 15))
 #1a How Many Times Do Cells have Certain num Genes
 #p1 = sns.displot(adata.obs["log1p_total_counts"], bins=100, kde=False)
 sns.histplot(adata.obs["log1p_total_counts"], kde=True, ax=axes[0, 0], bins=100, kde_kws={'bw_adjust': 0.5})
-axes[0, 0].set_title("Total Counts")
+axes[0, 0].set_title("log-transformed Total Counts")
 axes[0, 0].set_xlabel("Total Counts")  # Adding axis labels
 axes[0, 0].set_ylabel("Frequency")
 
 #1b How Many Times Do Cells have certain num Different Genes
 sns.histplot(adata.obs["log1p_n_genes_by_counts"], kde=True, ax=axes[0, 1], bins=100, kde_kws={'bw_adjust': 0.5})
-axes[0, 1].set_title("Genes by Counts")
-axes[0, 1].set_xlabel("Genes by Counts)")  # Adding axis labels
+axes[0, 1].set_title("log-transformed Genes by Counts")
+axes[0, 1].set_xlabel("log-transformed Genes by Counts)")  # Adding axis labels
 axes[0, 1].set_ylabel("Frequency")
 
 #1c
@@ -227,13 +227,6 @@ print(f"Type of adata.X: {type(adata.X)}")
 #-------------------------Outlier Deletion------------------------
 #-----------------------------------------------------------------
 print(f"Before Prefiltering, Total num of Cells: {adata.n_obs}, Genes: {adata.n_vars}")
-#adata.obs["Pre_filter"] = (
-#    (adata.obs["total_counts"] < )
-#    (adata.obs["n_genes_by_counts"] < 200)
-#    | (adata.obs["n_genes_by_counts"] > 8000)
-#)
-#adata.obs.Pre_filter.value_counts()
-#adata = adata[(~adata.obs.Pre_filter)]
 
 def is_outlier(adata, metric: str, nmads: int):
     M = adata.obs[metric]
@@ -243,6 +236,69 @@ def is_outlier(adata, metric: str, nmads: int):
     )
     print(f"Metric: {metric}, Median: {np.median(M)}, MAD: {mad_value}, Outliers: {outlier.sum()} / {len(M)}")
     return outlier
+
+adata.obs["count_outlier"] = (
+        (adata.obs["total_counts"] < 80)
+)
+print(adata.obs["count_outlier"].value_counts())
+print(f"Before Count-Outliers, Total num of Cells: {adata.n_obs}, Genes: {adata.n_vars}")
+adata = adata[(~adata.obs.count_outlier)].copy()
+print(f"After Count Outliers, Total num of Cells: {adata.n_obs}, Genes: {adata.n_vars}")
+#-----------------------------------------------------------------
+#1--------------------------Histogramm---------------------------
+#-----------------------------------------------------------------
+fig, axes = plt.subplots(3, 2, figsize=(10, 15))
+#1a How Many Times Do Cells have Certain num Genes
+#p1 = sns.displot(adata.obs["log1p_total_counts"], bins=100, kde=False)
+sns.histplot(adata.obs["log1p_total_counts"], kde=True, ax=axes[0, 0], bins=100, kde_kws={'bw_adjust': 0.5})
+axes[0, 0].set_title("log-transformed Total Counts")
+axes[0, 0].set_xlabel("Total Counts")  # Adding axis labels
+axes[0, 0].set_ylabel("Frequency")
+
+#1b How Many Times Do Cells have certain num Different Genes
+sns.histplot(adata.obs["log1p_n_genes_by_counts"], kde=True, ax=axes[0, 1], bins=100, kde_kws={'bw_adjust': 0.5})
+axes[0, 1].set_title("log-transformed Genes by Counts")
+axes[0, 1].set_xlabel("log-transformed Genes by Counts)")  # Adding axis labels
+axes[0, 1].set_ylabel("Frequency")
+
+#1c
+sns.histplot(frequency_table.index.repeat(frequency_table.values), bins=50, binrange=(1, 100), ax=axes[1, 0])  # Limit to the first 100 cells for clarity
+axes[1, 0].set_title("Gene Expression Across Cells")
+axes[1, 0].set_xlabel("Number of Cells Expressing the Gene")
+axes[1, 0].set_ylabel("Number of Genes")
+#plt.xticks(rotation=90)  # Rotate x-axis labels if needed
+
+#1d
+#p2 = sc.pl.violin(adata, "pct_counts_ribo")
+sns.violinplot(y=adata.obs["pct_counts_ribo"], ax=axes[1, 1],  width=0.8, density_norm="width", inner=None)  # Limit to the first 100 cells for clarity
+sns.stripplot(y=adata.obs["pct_counts_ribo"], ax=axes[1, 1], color="black", jitter=0.1, size=0.5, alpha=0.7)
+axes[1, 1].set_title("Percentage of Ribosomal Genes")
+axes[1, 1].set_xlabel("Frequency")
+axes[1, 1].set_ylabel("Pct Ribosomal Genes")
+#plt.xticks(rotation=90)  # Rotate x-axis labels if needed
+
+#1e
+#p2 = sc.pl.violin(adata, "pct_counts_ribo")
+#sns.violinplot(y=adata.obs["pct_counts_hb"], ax=axes[1, 1],  width=0.8, density_norm="width", inner=None)  # Limit to the first 100 cells for clarity
+sns.violinplot(y=adata.obs["pct_counts_hb"], ax=axes[2, 0],  width=0.8, inner=None)
+sns.stripplot(y=adata.obs["pct_counts_hb"], ax=axes[2, 0], color="black", jitter=0.1, size=0.5, alpha=0.7)
+axes[2, 0].set_title("Percentage of Heamoglobin Genes")
+axes[2, 0].set_xlabel("Frequency")
+axes[2, 0].set_ylabel("Pct Heamoglobin Genes")
+#plt.xticks(rotation=90)  # Rotate x-axis labels if needed
+
+#1f
+#p3 = sc.pl.scatter(adata, "log1p_total_counts", "n_genes_by_counts", color="pct_counts_mt")
+sns.scatterplot(x=adata.obs["total_counts"], y=adata.obs["n_genes_by_counts"], hue=adata.obs["pct_counts_mt"], ax=axes[2, 1])  # Limit to the first 100 cells for clarity
+axes[2, 1].set_title("Cells according to Number of Genes")
+axes[2, 1].set_xlabel("Total Counts")
+axes[2, 1].set_ylabel("Number of different Genes")
+#plt.xticks(rotation=90)  # Rotate x-axis labels if needed
+
+plt.tight_layout()  # Adjust layout to avoid overlap
+plt.show()
+print("Plotted 1b")
+print(f"Type of adata.X: {type(adata.X)}")
 
 adata.obs["feat_outlier"] = (
         is_outlier(adata, "pct_counts_mt", 3)
@@ -260,14 +316,69 @@ adata.var["n_genes_by_counts"] = np.asarray((adata.X > 0).sum(axis=0)).flatten()
 adata.obs["n_genes"] = np.asarray((adata.X > 0).sum(axis=1)).flatten()
 adata.obs["log1p_total_counts"] = np.log1p(adata.obs["total_counts"])
 adata.obs["log1p_n_genes_by_counts"] = np.log1p(adata.obs["n_genes_by_counts"])
+#-----------------------------------------------------------------
+#1--------------------------Histogramm---------------------------
+#-----------------------------------------------------------------
+fig, axes = plt.subplots(3, 2, figsize=(10, 15))
+#1a How Many Times Do Cells have Certain num Genes
+#p1 = sns.displot(adata.obs["log1p_total_counts"], bins=100, kde=False)
+sns.histplot(adata.obs["log1p_total_counts"], kde=True, ax=axes[0, 0], bins=100, kde_kws={'bw_adjust': 0.5})
+axes[0, 0].set_title("log-transformed Total Counts")
+axes[0, 0].set_xlabel("log-transformed Total Counts")  # Adding axis labels
+axes[0, 0].set_ylabel("Frequency")
+
+#1b How Many Times Do Cells have certain num Different Genes
+sns.histplot(adata.obs["log1p_n_genes_by_counts"], kde=True, ax=axes[0, 1], bins=100, kde_kws={'bw_adjust': 0.5})
+axes[0, 1].set_title("log-transformed Genes by Counts")
+axes[0, 1].set_xlabel("log-transformed Genes by Counts)")  # Adding axis labels
+axes[0, 1].set_ylabel("Frequency")
+
+#1c
+sns.histplot(frequency_table.index.repeat(frequency_table.values), bins=50, binrange=(1, 100), ax=axes[1, 0])  # Limit to the first 100 cells for clarity
+axes[1, 0].set_title("Gene Expression Across Cells")
+axes[1, 0].set_xlabel("Number of Cells Expressing the Gene")
+axes[1, 0].set_ylabel("Number of Genes")
+#plt.xticks(rotation=90)  # Rotate x-axis labels if needed
+
+#1d
+#p2 = sc.pl.violin(adata, "pct_counts_ribo")
+sns.violinplot(y=adata.obs["pct_counts_ribo"], ax=axes[1, 1],  width=0.8, density_norm="width", inner=None)  # Limit to the first 100 cells for clarity
+sns.stripplot(y=adata.obs["pct_counts_ribo"], ax=axes[1, 1], color="black", jitter=0.1, size=0.5, alpha=0.7)
+axes[1, 1].set_title("Percentage of Ribosomal Genes")
+axes[1, 1].set_xlabel("Frequency")
+axes[1, 1].set_ylabel("Pct Ribosomal Genes")
+#plt.xticks(rotation=90)  # Rotate x-axis labels if needed
+
+#1e
+#p2 = sc.pl.violin(adata, "pct_counts_ribo")
+#sns.violinplot(y=adata.obs["pct_counts_hb"], ax=axes[1, 1],  width=0.8, density_norm="width", inner=None)  # Limit to the first 100 cells for clarity
+sns.violinplot(y=adata.obs["pct_counts_hb"], ax=axes[2, 0],  width=0.8, inner=None)
+sns.stripplot(y=adata.obs["pct_counts_hb"], ax=axes[2, 0], color="black", jitter=0.1, size=0.5, alpha=0.7)
+axes[2, 0].set_title("Percentage of Heamoglobin Genes")
+axes[2, 0].set_xlabel("Frequency")
+axes[2, 0].set_ylabel("Pct Heamoglobin Genes")
+#plt.xticks(rotation=90)  # Rotate x-axis labels if needed
+
+#1f
+#p3 = sc.pl.scatter(adata, "log1p_total_counts", "n_genes_by_counts", color="pct_counts_mt")
+sns.scatterplot(x=adata.obs["total_counts"], y=adata.obs["n_genes_by_counts"], hue=adata.obs["pct_counts_mt"], ax=axes[2, 1])  # Limit to the first 100 cells for clarity
+axes[2, 1].set_title("Cells according to Number of Genes")
+axes[2, 1].set_xlabel("Total Counts")
+axes[2, 1].set_ylabel("Number of different Genes")
+#plt.xticks(rotation=90)  # Rotate x-axis labels if needed
+
+plt.tight_layout()  # Adjust layout to avoid overlap
+plt.show()
+print("Plotted 1c")
+print(f"Type of adata.X: {type(adata.X)}")
 
 adata.obs["outlier"] = (
-        is_outlier(adata, "log1p_total_counts", 5)
-        | is_outlier(adata, "log1p_n_genes_by_counts", 5)
-        | is_outlier(adata, "pct_counts_in_top_20_genes", 5)
+#        is_outlier(adata, "log1p_total_counts", 6)
+        (adata.obs["total_counts"] > 30000)
+#        | is_outlier(adata, "pct_counts_in_top_20_genes", 5)
 )
 print(adata.obs["outlier"].value_counts())
-print(f"After Outlier Deletion, Total num of Cells: {adata.n_obs}, Genes: {adata.n_vars}")
+print(f"After Feat_Outlier Deletion, Total num of Cells: {adata.n_obs}, Genes: {adata.n_vars}")
 adata = adata[(~adata.obs.outlier)].copy()
 print(f"After Outlier Deletion, Total num of Cells: {adata.n_obs}, Genes: {adata.n_vars}")
 
@@ -331,10 +442,10 @@ sc <- setClusters(sc, soupx_groups)
 print(head(soupx_groups))
 print(length(soupx_groups))
 print(ncol(data)) # Must match length(soupx_groups)
-print(sc$soupProfile)
+#print(sc$soupProfile)
 sc  <- autoEstCont(sc, doPlot=FALSE)
 #print(sc)
-summary(sc$fit)
+#summary(sc$fit)
 print(sc$fit$rho)
 # Infer corrected table of counts and rount to integer
 out <- adjustCounts(sc, roundToInt = TRUE)
@@ -365,14 +476,14 @@ fig, axes = plt.subplots(3, 2, figsize=(10, 15))
 #2a How Many Times Do Cells have Certain num Genes
 #p1 = sns.displot(adata.obs["log1p_total_counts"], bins=100, kde=False)
 sns.histplot(adata.obs["log1p_total_counts"], kde=True, ax=axes[0, 0], bins=100, kde_kws={'bw_adjust': 0.5})
-axes[0, 0].set_title("Log-transformed Total Counts")
-axes[0, 0].set_xlabel("Log(Total Counts)")  # Adding axis labels
+axes[0, 0].set_title("log-transformed Total Counts")
+axes[0, 0].set_xlabel("log-transformed Total Counts")  # Adding axis labels
 axes[0, 0].set_ylabel("Frequency")
 
 #2b How Many Times Do Cells have certain num Different Genes
-sns.histplot(adata.obs["log1p_n_genes_by_counts"], kde=True, ax=axes[0, 1], bins=100, kde_kws={'bw_adjust': 0.5})
-axes[0, 1].set_title("Log-transformed Genes by Counts")
-axes[0, 1].set_xlabel("Log(Genes by Counts)")  # Adding axis labels
+sns.histplot(adata.obs["n_genes_by_counts"], kde=True, ax=axes[0, 1], bins=100, kde_kws={'bw_adjust': 0.5})
+axes[0, 1].set_title("Genes by Counts")
+axes[0, 1].set_xlabel("Genes by Counts")  # Adding axis labels
 axes[0, 1].set_ylabel("Frequency")
 
 #2c
@@ -404,7 +515,7 @@ axes[2, 0].set_ylabel("Pct Heamoglobin Genes")
 #p3 = sc.pl.scatter(adata, "log1p_total_counts", "n_genes_by_counts", color="pct_counts_mt")
 sns.scatterplot(x=adata.obs["total_counts"], y=adata.obs["n_genes_by_counts"], hue=adata.obs["pct_counts_mt"], ax=axes[2, 1])  # Limit to the first 100 cells for clarity
 axes[2, 1].set_title("Cells according to Number of Genes")
-axes[2, 1].set_xlabel("log-transformed total counts")
+axes[2, 1].set_xlabel("Total Counts")
 axes[2, 1].set_ylabel("Number Genes by Count")
 #plt.xticks(rotation=90)  # Rotate x-axis labels if needed
 
@@ -481,6 +592,7 @@ adata.obs["scDblFinder_score"] = doublet_score
 adata.obs["scDblFinder_class"] = doublet_class
 adata.obs.scDblFinder_class.value_counts()
 print("Assigned Doublet Scores")
+adata = adata[adata.obs["scDblFinder_class"] == "singlet"].copy()
 
 #-----------------------------------------------------------------
 #3---------------------------Normalisation------------------------
@@ -592,9 +704,9 @@ adata.obs["log1p_n_genes_by_counts"] = np.log1p(adata.obs["n_genes_by_counts"])
 fig, axes = plt.subplots(1, 2, figsize=(10, 5))
 #4a How Many Times Do Cells have Certain num Genes
 #p1 = sns.displot(adata.obs["log1p_total_counts"], bins=100, kde=False)
-sns.histplot(adata.obs["log1p_total_counts"], kde=False, ax=axes[0], bins=100)
-axes[0].set_title("Log-transformed Total Counts")
-axes[0].set_xlabel("Log(Total Counts)")  # Adding axis labels
+sns.histplot(adata.obs["total_counts"], kde=False, ax=axes[0], bins=100)
+axes[0].set_title("Total Counts")
+axes[0].set_xlabel("Total Counts")  # Adding axis labels
 axes[0].set_ylabel("Frequency")
 
 #4b How Many Times Do Cells have certain num Different Genes
@@ -631,9 +743,9 @@ adata.obs["log1p_n_genes_by_counts"] = np.log1p(adata.obs["n_genes_by_counts"])
 fig, axes = plt.subplots(1, 2, figsize=(10, 5))
 #5a How Many Times Do Cells have Certain num Genes
 #p1 = sns.displot(adata.obs["log1p_total_counts"], bins=100, kde=False)
-sns.histplot(adata.obs["log1p_total_counts"], kde=False, ax=axes[0], bins=100)
-axes[0].set_title("Log-transformed Total Counts")
-axes[0].set_xlabel("Log(Total Counts)")  # Adding axis labels
+sns.histplot(adata.obs["total_counts"], kde=False, ax=axes[0], bins=100)
+axes[0].set_title("Total Counts")
+axes[0].set_xlabel("Total Counts")  # Adding axis labels
 axes[0].set_ylabel("Frequency")
 
 #5b How Many Times Do Cells have certain num Different Genes
@@ -670,14 +782,58 @@ sc.pp.highly_variable_genes(adata, layer="scran_normalization")
 ax = sns.scatterplot(
     data=adata.var, x="means", y="dispersions", hue="highly_deviant", s=5
 )
-#ax.set_xlim(None, 1.5)
+ax.set_xlim(None, 1.5)
 #ax.set_ylim(None, 3)
 plt.show()
 print("Features")
+
+#-----------------------------------------------------------------
+#--------------------------------PCA------------------------------
+#-----------------------------------------------------------------
+adata.X = adata.layers["log1p_norm"]
+
+# setting highly variable as highly deviant to use scanpy 'use_highly_variable' argument in sc.pp.pca
+adata.var["highly_variable"] = adata.var["highly_deviant"]
+sc.pp.pca(adata, svd_solver="arpack", use_highly_variable=True)
+sc.pl.pca_scatter(adata, color="total_counts")
+
+adata.X = adata.layers["scran_normalization"]
+adata.var["highly_variable"] = adata.var["highly_deviant"]
+sc.tl.pca(adata, n_comps=50, use_highly_variable=True)
+
+
+#-----------------------------------------------------------------
+#------------------------------t-SNE------------------------------
+#-----------------------------------------------------------------
+sc.tl.tsne(adata, use_rep="X_pca")
+sc.pl.tsne(adata, color="total_counts")
+
+#-----------------------------------------------------------------
+#------------------------------UMAPs------------------------------
+#-----------------------------------------------------------------
+sc.pp.neighbors(adata, n_pcs=30)
+sc.tl.umap(adata)
+
+sc.pl.umap(adata, color="total_counts")
+
+sc.pl.umap(
+    adata,
+    color=["total_counts", "pct_counts_mt", "scDblFinder_score", "scDblFinder_class"],
+)
+
+
+#-----------------------------------------------------------------
+#-----------------------------Regression--------------------------
+#-----------------------------------------------------------------
+#adata = adata[adata.X.sum(axis=1) > 0].copy() #out cells with 0 gene expression
+#sc.pp.regress_out(adata, keys=['total_counts', 'n_genes_by_counts'])
+#print(f"After Regression. Cells: {adata.n_obs}, Genes: {adata.n_vars}")
+#print(adata.obs['total_counts'].mean())
+
 #-----------------------------------------------------------------
 #---------------------------Save Progress-------------------------
 #-----------------------------------------------------------------
-adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat1NorPP0_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat1NorPP0_data.h5ad")
 #adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat2NorPP0_data.h5ad")
 #adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat3NorPP0_data.h5ad")
 #adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat4NorPP0_data.h5ad")
@@ -687,7 +843,7 @@ adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat1NorPP0_data.h5
 
 #adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat1TumPP0_data.h5ad")
 #adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat2TumPP0_data.h5ad")
-#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat3TumPP0_data.h5ad")
+adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat3TumPP0_data.h5ad")
 #adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat4TumPP0_data.h5ad")
 #adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat5TumPP0_data.h5ad")
 #adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat6TumPP0_data.h5ad")
