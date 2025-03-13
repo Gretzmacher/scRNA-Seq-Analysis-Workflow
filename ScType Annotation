@@ -1,0 +1,199 @@
+import urllib.request
+from numba.core.ir import Print
+
+import warnings
+
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+from numba.core.errors import NumbaDeprecationWarning
+
+warnings.simplefilter("ignore", category=NumbaDeprecationWarning)
+
+import rpy2.robjects as ro
+import urllib.request
+from pathlib import Path
+
+import celltypist
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import scanpy as sc
+import seaborn as sns
+from celltypist import models
+import scipy.sparse
+from scipy.sparse import csr_matrix
+
+warnings.filterwarnings("ignore", category=pd.errors.PerformanceWarning)
+sc.settings.verbosity = 0
+sc.settings.set_figure_params(dpi=80, facecolor="white", frameon=False)
+pd.set_option("display.precision", 9)
+#%load_ext rpy2.ipython
+ro.r('library(scry)')
+#ro.r('library(devianceFeaturerSelection)')
+
+url = "https://raw.githubusercontent.com/kris-nader/sc-type-py/main/sctype_py.py"
+response = urllib.request.urlopen(url)
+script = response.read().decode()
+print("Read Script")
+# Execute the script
+exec(script)
+print("Exced Script")
+
+#-----------------------------------------------------------------
+#-----------------------Loading All Files-------------------------
+#-----------------------------------------------------------------
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat1NorPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat2NorPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat3NorPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat4NorPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat5NorPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat6NorPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat7NorPP0_data.h5ad")
+
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat1TumPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat2TumPP0_data.h5ad")
+adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat3TumPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat4TumPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat5TumPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat6TumPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat7TumPP0_data.h5ad")
+
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat1PP_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat2PP_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat3PP_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat4PP_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat5PP_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat6PP_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat6PP_data.h5ad")
+print("Imported Adata")
+#-----------------------------------------------------------------
+#2----------------------------Leiden------------------------------
+#-----------------------------------------------------------------
+adata.layers["counts"] = adata.X.copy()
+
+adata.X = adata.layers["scran_normalization"]
+adata.var["highly_variable"] = adata.var["highly_deviant"].values
+
+#sc.pp.highly_variable_genes(adata, n_top_genes=2000, flavor="seurat_v3",layer="counts")
+#sc.pp.normalize_total(adata)
+#sc.pp.log1p(adata)
+#adata.raw = adata
+
+# Scale and run PCA
+sc.pp.scale(adata,max_value=10)
+scaled_data = pd.DataFrame(adata.X)
+# change column indexes
+scaled_data.columns =adata.var_names
+# Change the row indexes
+scaled_data.index = adata.obs_names
+scaled_data=scaled_data.T
+
+sc.tl.pca(adata,zero_center=False,random_state=0, n_comps=50, use_highly_variable=True)
+sc.pp.neighbors(adata, n_neighbors=20, n_pcs=10,use_rep="X_pca",random_state=0)
+sc.tl.leiden(adata,resolution=0.8,n_iterations=10)
+
+# Visualize clusters using UMAP
+sc.tl.umap(adata,min_dist=0.3)
+sc.pl.umap(adata, color=['leiden'])
+#-----------------------------------------------------------------
+#2----------------------------Leiden------------------------------
+#-----------------------------------------------------------------
+
+#sc.pp.neighbors(adata, n_pcs=30)
+#sc.tl.umap(adata)
+
+#sc.tl.leiden(adata)
+
+#sc.tl.leiden(adata, key_added="leiden_res0_25", resolution=0.25)
+#sc.tl.leiden(adata, key_added="leiden_res0_5", resolution=0.5)
+#sc.tl.leiden(adata, key_added="leiden_res1", resolution=1.0)
+
+#sc.pl.umap(
+#    adata,
+#    color=["leiden_res0_25", "leiden_res0_5", "leiden_res1"],
+#    legend_loc="on data",
+#)
+
+#print(adata.X.shape)
+#print(adata.layers["scran_normalization"].shape)
+#print(adata.var["highly_deviant"].shape)
+#print(adata.var.shape)
+#print(type(adata.var["highly_deviant"]))
+#print(adata.var["highly_deviant"].head())
+
+#adata.layers["counts"] = adata.X
+#adata.X = adata.layers["scran_normalization"]
+#adata.var["highly_variable"] = adata.var["highly_deviant"].values
+#sc.tl.pca(adata, n_comps=50, use_highly_variable=True)
+#sc.pp.neighbors(adata)
+#sc.tl.umap(adata)
+#print("SOfi Sofa")
+
+# Scale and run PCA
+#sc.pp.scale(adata,max_value=10)
+#scaled_data = pd.DataFrame(adata.X)
+
+#print("Scale Checks")
+#print(scaled_data.shape)
+#print(len(adata.var_names))
+#print(scaled_data.shape)  # Shape of scaled_data before renaming columns
+#print(len(adata.var_names))  # Number of gene names (should match columns)
+#print(len(adata.obs_names))  # Number of cell names (should match rows)
+
+
+# change column indexes
+#scaled_data.columns =adata.var_names
+# Change the row indexes
+#scaled_data.index = adata.obs_names
+#scaled_data=scaled_data.T
+print("Scaled Adata")
+
+# Load the data- this is scaled
+#adata = sc.read_text("/Users/naderkri/Desktop/sptype/pbmc_scaled.txt",first_column_names=True)
+#scRNAseqData = pd.DataFrame(adata.X, columns=adata.var_names, index=adata.obs_names)
+scRNAseqData=scaled_data
+gs_list = gene_sets_prepare(path_to_db_file=r"D:\UKW\DataSets\sctypeDB\ScTypeDB_full.xlsx",cell_type="Intestine")
+print("got sctypeDB")
+es_max = sctype_score(scRNAseqData = scRNAseqData, scaled = True, gs = gs_list['gs_positive'], gs2 = gs_list['gs_negative'])
+print("got scores")
+unique_clusters = adata.obs['leiden'].unique()
+# Apply the function to each unique cluster and combine the results into a DataFrame
+cL_results = pd.concat([process_cluster(cluster,adata,es_max,"leiden") for cluster in unique_clusters])
+print("got Cluster results")
+# Group by cluster and select the top row based on scores
+sctype_scores = cL_results.groupby('cluster').apply(lambda x: x.nlargest(1, 'scores')).reset_index(drop=True)
+print("got scores again")
+# Set low-confidence clusters to "Unknown"
+sctype_scores.loc[sctype_scores['scores'] < sctype_scores['ncells'] / 4, 'type'] = 'Unknown'
+
+adata.obs['sctype_classification'] = ""
+print("got Classification")
+# Iterate over unique clusters
+for cluster in sctype_scores['cluster'].unique():
+    # Filter sctype_scores for the current cluster
+    cl_type = sctype_scores[sctype_scores['cluster'] == cluster]
+    # Get the type for the current cluster
+    cl_type_value = cl_type['type'].iloc[0]
+    # Update 'sctype_classification' in pbmc.obs for cells belonging to the current cluster
+    adata.obs.loc[adata.obs['leiden'] == cluster, 'sctype_classification'] = cl_type_value
+
+# Step 1: Create a mapping from Leiden clusters to scores
+cluster_score_map = dict(zip(sctype_scores["cluster"].astype(str), sctype_scores["scores"]))
+# Step 2: Assign scores to individual cells
+adata.obs["sctype_score"] = adata.obs["leiden"].map(cluster_score_map)
+
+
+# Plot the UMAP with sctype_classification as labels
+sc.pl.umap(adata,
+           color=['sctype_classification','sctype_score'],
+           wspace=4,#Horizontal Space between Panels
+           size=2,#Dot-Size
+           ncols=1,
+           title=['UMAP with sctype_classification','Type Confidence'],
+           #show=False
+           )
+
+sc.pl.umap(adata,
+    color=["sctype_classification", "sctype_score"],
+    legend_loc="on data",
+)
