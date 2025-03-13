@@ -1,0 +1,260 @@
+import warnings
+
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+from numba.core.errors import NumbaDeprecationWarning
+
+warnings.simplefilter("ignore", category=NumbaDeprecationWarning)
+
+import rpy2.robjects as ro
+import urllib.request
+from pathlib import Path
+
+import celltypist
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import scanpy as sc
+#import scarches as sca
+import seaborn as sns
+from celltypist import models
+from scipy.sparse import csr_matrix
+
+warnings.filterwarnings("ignore", category=pd.errors.PerformanceWarning)
+sc.settings.verbosity = 0
+sc.settings.set_figure_params(dpi=80, facecolor="white", frameon=False)
+
+#%load_ext rpy2.ipython
+ro.r('library(scry)')
+#ro.r('library(devianceFeaturerSelection)')
+
+#-----------------------------------------------------------------
+#-----------------------Loading All Files-------------------------
+#-----------------------------------------------------------------
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat1NorPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat2NorPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat3NorPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat4NorPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat5NorPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat6NorPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat7NorPP0_data.h5ad")
+
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat1TumPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat2TumPP0_data.h5ad")
+adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat3TumPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat4TumPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat5TumPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat6TumPP0_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat7TumPP0_data.h5ad")
+
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat1PP_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat2PP_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat3PP_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat4PP_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat5PP_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat6PP_data.h5ad")
+#adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat6PP_data.h5ad")
+
+#-----------------------------------------------------------------
+#2----------------------Manual Annotation-------------------------
+#-----------------------------------------------------------------
+marker_genes = {
+    "CD14+ Mono": ["FCN1", "CD14"],
+    "CD16+ Mono": ["TCF7L2", "FCGR3A", "LYN"],
+    "ID2-hi myeloid prog": ["CD14", "ID2", "VCAN", "S100A9", "CLEC12A", "KLF4", "PLAUR"],
+    "cDC1": ["CLEC9A", "CADM1"],
+    "cDC2": ["CST3", "COTL1", "LYZ", "DMXL2", "CLEC10A", "FCER1A"],  # Note: DMXL2 should be negative
+    "Normoblast": ["SLC4A1", "SLC25A37", "HBB", "HBA2", "HBA1", "TFRC"],
+    "Erythroblast": ["MKI67", "HBA1", "HBB"],
+    "Proerythroblast": ["CDK6", "SYNGR1", "HBM", "GYPA"],  # Note HBM and GYPA are negative markers
+    "NK": ["GNLY", "NKG7", "CD247", "GRIK4", "FCER1G", "TYROBP", "KLRG1", "FCGR3A"],
+    "ILC": ["ID2", "PLCG2", "GNLY", "SYNE1"],
+    "Lymph prog": ["VPREB1", "MME", "EBF1", "SSBP2", "BACH2", "CD79B", "IGHM", "PAX5", "PRKCE",
+                   "DNTT","IGLL1"],
+    "Naive CD20+ B": ["MS4A1", "IL4R", "IGHD", "FCRL1", "IGHM"],
+    "B1 B": ["MS4A1", "SSPN", "ITGB1", "EPHA4", "COL4A4", "PRDM1", "IRF4", "CD38", "XBP1", "PAX5",
+             "BCL11A", "BLK",  "ZNF215", "IGHD", "IGHM"],  # Note IGHD and IGHM are negative markers
+    "Transitional B": ["MME", "CD38", "CD24", "ACSM3", "MSI2"],
+    "Plasma Cells": ["JCHAIN", "MZB1", "HSP90B1", "FNDC3B", "PRDM1", "IGKC"],
+    "Plasmablasts": ["XBP1", "RF4", "PRDM1", "PAX5"],  # Note PAX5 is a negative marker
+    "CD4+ T activated": ["IL7R", "SARAF", "LTB", "CD4", "TRBC2", "ITGB1"],
+    "CD4+ T naive": ["CD4", "IL7R", "TRBC2", "CCR7"],
+    "CD8+ T": ["CCL5", "RORA", "GZMA", "CD8A", "CD8B", "GZMK",   "GZMB", "GZMH"],
+    "T activation": ["CD69", "CD38"],  # CD69 much better marker!
+    "T naive": ["LEF1", "CCR7", "TCF7"],
+    "pDC": ["GZMB", "IL3RA", "COBLL1", "TCF4"],
+    "G/M prog": ["MPO", "BCL2", "KCNQ5", "CSF3R"],
+    "HSC": ["NRIP1", "MECOM", "PROM1", "NKAIN2", "CD34"],
+    "MK/E prog": ["ZNF385D", "ITGA2B", "RYR3", "PLCB1"],# Note PLCB1 is a negative marker
+    "Fibroblasts": ["COL1A1", "COL3A1", "DCN","VIM", "PDGFRB", "LUM", "COL6A2", "VTN"],
+    "Macrophages": ["C1QA", "LYZ", "CD68", "FCGR1", "NAAA", "LYZ2"],
+    "Epithelial Cells": ["EPCAM", "PIGR", "CEACAM", "CD24"],
+    "Mast Cells": ["KIT", "CPA3", "TPSAB1", "IL1RL1", "HDC"],
+    "Neutrophils": ["S100A8", "S100A9", "CXCL8", "HP", "HDC"],
+    "Endothelial": ["PLVAP", "VMF", "PECAM1", "IGFBP7", "ID3", "EGFL7"],
+    "Smooth Muscle Cells": ["TAGLN", "RGS5", "ACTA2"]
+}
+
+marker_genes_in_data = {}
+for ct, markers in marker_genes.items():
+    markers_found = []
+    for marker in markers:
+        if marker in adata.var.index:
+            markers_found.append(marker)
+    marker_genes_in_data[ct] = markers_found
+
+#adata.layers["counts"] = adata.X
+#adata.X = adata.layers["scran_normalization"]
+adata.var["highly_variable"] = adata.var["highly_deviant"]
+sc.tl.pca(adata, n_comps=50, use_highly_variable=True)
+sc.pp.neighbors(adata, n_pcs=30)
+sc.tl.umap(adata)
+
+#sc.tl.leiden(adata)
+sc.tl.leiden(adata, key_added="leiden_res0_25", resolution=0.25)
+sc.tl.leiden(adata, key_added="leiden_res0_5", resolution=0.5)
+sc.tl.leiden(adata, key_added="leiden_res1", resolution=1.0)
+
+sc.pl.umap(
+    adata,
+    color=["leiden_res0_25", "leiden_res0_5", "leiden_res1"],
+    legend_loc="on data",
+)
+
+Cell_Types_cts = [
+    "CD4+ T activated",
+    "CD4+ T naive",
+    "CD8+ T",
+    "Fibroblasts",
+    "Epithelial Cells",
+    "B1 B",
+    "Transitional B",
+    "Macrophages",
+    "Mast Cells",
+    "Plasma Cells",
+    "Plasmablasts",
+    "Neutrophils",
+    "Endothelial",
+    "Smooth Muscle Cells"
+]
+
+for ct in Cell_Types_cts:
+    print(f"{ct.upper()}:")  # print cell subtype name
+    sc.pl.umap(
+        adata,
+        color=marker_genes_in_data[ct],
+        vmin=0,
+        vmax="p99",  # set vmax to the 99th percentile of the gene count instead of the maximum, to prevent outliers from making expression in other cells invisible. Note that this can cause problems for extremely lowly expressed genes.
+        sort_order=False,  # do not plot highest expression on top, to not get a biased view of the mean expression among cells
+        frameon=False,
+        cmap="Reds",  # or choose another color map e.g. from here: https://matplotlib.org/stable/tutorials/colors/colormaps.html
+    )
+    print("\n\n\n")  # print white space for legibility
+
+sc.tl.leiden(adata, resolution=1, key_added="leiden_res0_5")
+sc.pl.umap(adata, color="leiden_res0_5", legend_loc="on data")
+
+Cell_Types = {
+    ct: [m for m in ct_markers if m in adata.var.index]
+    for ct, ct_markers in marker_genes.items()
+    if ct in Cell_Types_cts
+}
+
+sc.pl.dotplot(
+    adata,
+    groupby="leiden_res0_5",
+    var_names=Cell_Types,
+    standard_scale="var",  # standard scale: normalize each gene to range from 0 to 1
+)
+
+#---------------Manual Annotation-------------
+cl_annotation = {
+#    "13": "Epithelial Cells",
+#    "15": "Macrophages",
+#    "11": "CD8+ T Cells",
+#    "17": "Fibroblasts",  # note that IGHD and IGHM are negative markers, in this case more lowly expressed than in the other B cell clusters
+}
+adata.obs["manual_celltype_annotation"] = adata.obs.leiden_res0_5.map(cl_annotation)
+sc.pl.umap(adata, color=["manual_celltype_annotation"])
+
+
+sc.tl.rank_genes_groups(
+    adata,
+    groupby="leiden_res0_5",
+    method="wilcoxon",
+    key_added="dea_leiden_res0_5"
+)
+sc.pl.rank_genes_groups_dotplot(
+    adata,
+    groupby="leiden_res0_5",
+    standard_scale="var",
+    n_genes=5,
+    key="dea_leiden_res0_5"
+)
+
+sc.tl.filter_rank_genes_groups(
+    adata,
+    min_in_group_fraction=0.2,
+    max_out_group_fraction=0.2,
+    key="dea_leiden_res0_5",
+    key_added="dea_leiden_res0_5_filtered",
+)
+sc.pl.rank_genes_groups_dotplot(
+    adata,
+    groupby="leiden_res0_5",
+    standard_scale="var",
+    n_genes=5,
+    key="dea_leiden_res0_5_filtered",
+)
+#sc.pl.umap(
+#    adata,
+#    color=["CDK6", "ETV6", "NKAIN2", "GNAQ", "leiden_res1"],
+#    vmax="p99",
+#    legend_loc="on data",
+#    frameon=False,
+#    cmap="Reds",
+#)
+#sc.pl.umap(
+#    adata,
+#    color=[
+#        "ZNF385D",
+#        "ITGA2B",
+#        "RYR3",
+#        "PLCB1",
+#    ],
+#    vmax="p99",
+#    legend_loc="on data",
+#    frameon=False,
+#    cmap="Reds",
+#)
+#adata.obs["manual_celltype_annotation"] = adata.obs.leiden_2.map(cl_annotation)
+#-----------------------------------------------------------------
+#---------------------------Save Progress-------------------------
+#-----------------------------------------------------------------
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat1NorType_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat2NorType_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat3NorType_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat4NorType_data.h5ad")
+adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat5NorManType_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat6NorType_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat7NorType_data.h5ad")
+
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat1TumType_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat2TumType_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat3TumType_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat4TumType_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat5TumType_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat6TumType_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat7TumType_data.h5ad")
+
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat1Type_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat2Type_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat3Type_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat4Type_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat5Type_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat6Type_data.h5ad")
+#adata.write(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat7Type_data.h5ad")
+#adata.write("7_Tum_PP")
+#adata.write("7_Nor_PP")
+#adata.write("14_PP")
+print("PP done")
