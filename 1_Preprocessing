@@ -244,60 +244,6 @@ print(adata.obs["count_outlier"].value_counts())
 print(f"Before Count-Outliers, Total num of Cells: {adata.n_obs}, Genes: {adata.n_vars}")
 adata = adata[(~adata.obs.count_outlier)].copy()
 print(f"After Count Outliers, Total num of Cells: {adata.n_obs}, Genes: {adata.n_vars}")
-#-----------------------------------------------------------------
-#1--------------------------Histogramm---------------------------
-#-----------------------------------------------------------------
-fig, axes = plt.subplots(3, 2, figsize=(10, 15))
-#1a How Many Times Do Cells have Certain num Genes
-#p1 = sns.displot(adata.obs["log1p_total_counts"], bins=100, kde=False)
-sns.histplot(adata.obs["log1p_total_counts"], kde=True, ax=axes[0, 0], bins=100, kde_kws={'bw_adjust': 0.5})
-axes[0, 0].set_title("log-transformed Total Counts")
-axes[0, 0].set_xlabel("Total Counts")  # Adding axis labels
-axes[0, 0].set_ylabel("Frequency")
-
-#1b How Many Times Do Cells have certain num Different Genes
-sns.histplot(adata.obs["log1p_n_genes_by_counts"], kde=True, ax=axes[0, 1], bins=100, kde_kws={'bw_adjust': 0.5})
-axes[0, 1].set_title("log-transformed Genes by Counts")
-axes[0, 1].set_xlabel("log-transformed Genes by Counts)")  # Adding axis labels
-axes[0, 1].set_ylabel("Frequency")
-
-#1c
-sns.histplot(frequency_table.index.repeat(frequency_table.values), bins=50, binrange=(1, 100), ax=axes[1, 0])  # Limit to the first 100 cells for clarity
-axes[1, 0].set_title("Gene Expression Across Cells")
-axes[1, 0].set_xlabel("Number of Cells Expressing the Gene")
-axes[1, 0].set_ylabel("Number of Genes")
-#plt.xticks(rotation=90)  # Rotate x-axis labels if needed
-
-#1d
-#p2 = sc.pl.violin(adata, "pct_counts_ribo")
-sns.violinplot(y=adata.obs["pct_counts_ribo"], ax=axes[1, 1],  width=0.8, density_norm="width", inner=None)  # Limit to the first 100 cells for clarity
-sns.stripplot(y=adata.obs["pct_counts_ribo"], ax=axes[1, 1], color="black", jitter=0.1, size=0.5, alpha=0.7)
-axes[1, 1].set_title("Percentage of Ribosomal Genes")
-axes[1, 1].set_xlabel("Frequency")
-axes[1, 1].set_ylabel("Pct Ribosomal Genes")
-#plt.xticks(rotation=90)  # Rotate x-axis labels if needed
-
-#1e
-#p2 = sc.pl.violin(adata, "pct_counts_ribo")
-#sns.violinplot(y=adata.obs["pct_counts_hb"], ax=axes[1, 1],  width=0.8, density_norm="width", inner=None)  # Limit to the first 100 cells for clarity
-sns.violinplot(y=adata.obs["pct_counts_hb"], ax=axes[2, 0],  width=0.8, inner=None)
-sns.stripplot(y=adata.obs["pct_counts_hb"], ax=axes[2, 0], color="black", jitter=0.1, size=0.5, alpha=0.7)
-axes[2, 0].set_title("Percentage of Heamoglobin Genes")
-axes[2, 0].set_xlabel("Frequency")
-axes[2, 0].set_ylabel("Pct Heamoglobin Genes")
-#plt.xticks(rotation=90)  # Rotate x-axis labels if needed
-
-#1f
-#p3 = sc.pl.scatter(adata, "log1p_total_counts", "n_genes_by_counts", color="pct_counts_mt")
-sns.scatterplot(x=adata.obs["total_counts"], y=adata.obs["n_genes_by_counts"], hue=adata.obs["pct_counts_mt"], ax=axes[2, 1])  # Limit to the first 100 cells for clarity
-axes[2, 1].set_title("Cells according to Number of Genes")
-axes[2, 1].set_xlabel("Total Counts")
-axes[2, 1].set_ylabel("Number of different Genes")
-#plt.xticks(rotation=90)  # Rotate x-axis labels if needed
-
-plt.tight_layout()  # Adjust layout to avoid overlap
-plt.show()
-print("Plotted 1b")
 print(f"Type of adata.X: {type(adata.X)}")
 
 adata.obs["feat_outlier"] = (
@@ -316,61 +262,6 @@ adata.var["n_genes_by_counts"] = np.asarray((adata.X > 0).sum(axis=0)).flatten()
 adata.obs["n_genes"] = np.asarray((adata.X > 0).sum(axis=1)).flatten()
 adata.obs["log1p_total_counts"] = np.log1p(adata.obs["total_counts"])
 adata.obs["log1p_n_genes_by_counts"] = np.log1p(adata.obs["n_genes_by_counts"])
-#-----------------------------------------------------------------
-#1--------------------------Histogramm---------------------------
-#-----------------------------------------------------------------
-fig, axes = plt.subplots(3, 2, figsize=(10, 15))
-#1a How Many Times Do Cells have Certain num Genes
-#p1 = sns.displot(adata.obs["log1p_total_counts"], bins=100, kde=False)
-sns.histplot(adata.obs["log1p_total_counts"], kde=True, ax=axes[0, 0], bins=100, kde_kws={'bw_adjust': 0.5})
-axes[0, 0].set_title("log-transformed Total Counts")
-axes[0, 0].set_xlabel("log-transformed Total Counts")  # Adding axis labels
-axes[0, 0].set_ylabel("Frequency")
-
-#1b How Many Times Do Cells have certain num Different Genes
-sns.histplot(adata.obs["log1p_n_genes_by_counts"], kde=True, ax=axes[0, 1], bins=100, kde_kws={'bw_adjust': 0.5})
-axes[0, 1].set_title("log-transformed Genes by Counts")
-axes[0, 1].set_xlabel("log-transformed Genes by Counts)")  # Adding axis labels
-axes[0, 1].set_ylabel("Frequency")
-
-#1c
-sns.histplot(frequency_table.index.repeat(frequency_table.values), bins=50, binrange=(1, 100), ax=axes[1, 0])  # Limit to the first 100 cells for clarity
-axes[1, 0].set_title("Gene Expression Across Cells")
-axes[1, 0].set_xlabel("Number of Cells Expressing the Gene")
-axes[1, 0].set_ylabel("Number of Genes")
-#plt.xticks(rotation=90)  # Rotate x-axis labels if needed
-
-#1d
-#p2 = sc.pl.violin(adata, "pct_counts_ribo")
-sns.violinplot(y=adata.obs["pct_counts_ribo"], ax=axes[1, 1],  width=0.8, density_norm="width", inner=None)  # Limit to the first 100 cells for clarity
-sns.stripplot(y=adata.obs["pct_counts_ribo"], ax=axes[1, 1], color="black", jitter=0.1, size=0.5, alpha=0.7)
-axes[1, 1].set_title("Percentage of Ribosomal Genes")
-axes[1, 1].set_xlabel("Frequency")
-axes[1, 1].set_ylabel("Pct Ribosomal Genes")
-#plt.xticks(rotation=90)  # Rotate x-axis labels if needed
-
-#1e
-#p2 = sc.pl.violin(adata, "pct_counts_ribo")
-#sns.violinplot(y=adata.obs["pct_counts_hb"], ax=axes[1, 1],  width=0.8, density_norm="width", inner=None)  # Limit to the first 100 cells for clarity
-sns.violinplot(y=adata.obs["pct_counts_hb"], ax=axes[2, 0],  width=0.8, inner=None)
-sns.stripplot(y=adata.obs["pct_counts_hb"], ax=axes[2, 0], color="black", jitter=0.1, size=0.5, alpha=0.7)
-axes[2, 0].set_title("Percentage of Heamoglobin Genes")
-axes[2, 0].set_xlabel("Frequency")
-axes[2, 0].set_ylabel("Pct Heamoglobin Genes")
-#plt.xticks(rotation=90)  # Rotate x-axis labels if needed
-
-#1f
-#p3 = sc.pl.scatter(adata, "log1p_total_counts", "n_genes_by_counts", color="pct_counts_mt")
-sns.scatterplot(x=adata.obs["total_counts"], y=adata.obs["n_genes_by_counts"], hue=adata.obs["pct_counts_mt"], ax=axes[2, 1])  # Limit to the first 100 cells for clarity
-axes[2, 1].set_title("Cells according to Number of Genes")
-axes[2, 1].set_xlabel("Total Counts")
-axes[2, 1].set_ylabel("Number of different Genes")
-#plt.xticks(rotation=90)  # Rotate x-axis labels if needed
-
-plt.tight_layout()  # Adjust layout to avoid overlap
-plt.show()
-print("Plotted 1c")
-print(f"Type of adata.X: {type(adata.X)}")
 
 adata.obs["outlier"] = (
 #        is_outlier(adata, "log1p_total_counts", 6)
@@ -458,7 +349,7 @@ adata.layers["soupX_counts"] = out.T
 adata.X = adata.layers["soupX_counts"]
 
 print(f"Initial dataset shape: {adata.shape}")
-sc.pp.filter_genes(adata, min_cells=20)  #Min 20 cells - filters out 0 count genes
+sc.pp.filter_genes(adata, min_cells=20)  #Min 20 cells - filters out low count genes
 print(f"After last Filter, num Cells: {adata.n_obs}, Genes: {adata.n_vars}")
 
 #-----------------------------------------------------------------
@@ -523,26 +414,6 @@ plt.tight_layout()  # Adjust layout to avoid overlap
 plt.show()
 print("Plotted 2")
 
-#-----------------------------------------------------------------
-#2b----------------------For Trial and Error-----------------------
-#-----------------------------------------------------------------
-fig, axes = plt.subplots(1, 2, figsize=(10, 5))
-#3a How Many Times Do Cells have Certain num Genes
-#p1 = sns.displot(adata.obs["log1p_total_counts"], bins=100, kde=False)
-sns.histplot(adata.obs["total_counts"], kde=False, ax=axes[0], bins=100)
-axes[0].set_title("Total Counts")
-axes[0].set_xlabel("Total Counts")  # Adding axis labels
-axes[0].set_ylabel("Frequency")
-
-#3b How Many Times Do Cells have certain num Different Genes
-sns.histplot(adata.obs["log1p_total_counts"], kde=False, ax=axes[1], bins=100)
-axes[1].set_title("Log-transforemd Total Counts")
-axes[1].set_xlabel("Log-Transformed Total Counts")  # Adding axis labels
-axes[1].set_ylabel("Frequency")
-
-plt.tight_layout()  # Adjust layout to avoid overlap
-plt.show()
-print("Plotted 2b")
 #-----------------------------------------------------------------
 #-------------------------Doublet Detection-----------------------
 #-----------------------------------------------------------------
@@ -609,14 +480,11 @@ adata.obs["log1p_total_counts"] = np.log1p(adata.obs["total_counts"])
 adata.obs["log1p_n_genes_by_counts"] = np.log1p(adata.obs["n_genes_by_counts"])
 
 fig, axes = plt.subplots(1, 2, figsize=(10, 5))
-#3a How Many Times Do Cells have Certain num Genes
-#p1 = sns.displot(adata.obs["log1p_total_counts"], bins=100, kde=False)
 sns.histplot(adata.obs["total_counts"], kde=False, ax=axes[0], bins=100)
 axes[0].set_title("Total Counts")
 axes[0].set_xlabel("Total Counts")  # Adding axis labels
 axes[0].set_ylabel("Frequency")
 
-#3b How Many Times Do Cells have certain num Different Genes
 sns.histplot(adata.layers["log1p_norm"].sum(1), kde=False, ax=axes[1], bins=100)
 axes[1].set_title("Shifted logarithm")
 axes[1].set_xlabel("Normalised Log-transformed Total Counts")  # Adding axis labels
@@ -724,31 +592,18 @@ print("Plotted 4")
 analytic_pearson = sc.experimental.pp.normalize_pearson_residuals(adata, inplace=False)
 adata.layers["analytic_pearson_residuals"] = csr_matrix(analytic_pearson["X"])
 
-#fig, axes = plt.subplots(1, 2, figsize=(10, 5))
-#p1 = sns.histplot(adata.obs["total_counts"], bins=100, kde=False, ax=axes[0])
-#axes[0].set_title("Total counts")
-#p2 = sns.histplot(
-#    adata.layers["analytic_pearson_residuals"].sum(1), bins=100, kde=False, ax=axes[1]
-#)
-#axes[1].set_title("Analytic Pearson residuals")
-#plt.show()
-
 adata.obs['total_counts'] = adata.X.sum(axis=1)  # Recalculate total counts per cell
 adata.var['n_genes_by_counts'] = np.asarray((adata.X > 0).sum(axis=0)).flatten()
 adata.obs['n_genes'] = np.asarray((adata.X > 0).sum(axis=1)).flatten()
-
 adata.obs["log1p_total_counts"] = np.log1p(adata.obs["total_counts"])
 adata.obs["log1p_n_genes_by_counts"] = np.log1p(adata.obs["n_genes_by_counts"])
 
 fig, axes = plt.subplots(1, 2, figsize=(10, 5))
-#5a How Many Times Do Cells have Certain num Genes
-#p1 = sns.displot(adata.obs["log1p_total_counts"], bins=100, kde=False)
 sns.histplot(adata.obs["total_counts"], kde=False, ax=axes[0], bins=100)
 axes[0].set_title("Total Counts")
 axes[0].set_xlabel("Total Counts")  # Adding axis labels
 axes[0].set_ylabel("Frequency")
 
-#5b How Many Times Do Cells have certain num Different Genes
 sns.histplot(adata.layers["analytic_pearson_residuals"].sum(1), kde=False, ax=axes[1], bins=100)
 axes[1].set_title("Analytic Pearson Residuals")
 axes[1].set_xlabel("Analytic Pearson Resiudals")
@@ -790,17 +645,51 @@ print("Features")
 #-----------------------------------------------------------------
 #--------------------------------PCA------------------------------
 #-----------------------------------------------------------------
-adata.X = adata.layers["log1p_norm"]
-
+adata.X = adata.layers["analytic_pearson_residuals"]
 # setting highly variable as highly deviant to use scanpy 'use_highly_variable' argument in sc.pp.pca
 adata.var["highly_variable"] = adata.var["highly_deviant"]
 sc.pp.pca(adata, svd_solver="arpack", use_highly_variable=True)
 sc.pl.pca_scatter(adata, color="total_counts")
 
-adata.X = adata.layers["scran_normalization"]
-adata.var["highly_variable"] = adata.var["highly_deviant"]
-sc.tl.pca(adata, n_comps=50, use_highly_variable=True)
+#4-------------Generate Eigenvectors to Reduce Dimensions------------
+#4----------------------------Elbow--Plot----------------------------
+sc.tl.pca(adata)
+sc.pl.pca_variance_ratio(adata, n_pcs=50, log=True)
+plt.show() #Show Distribution of 50 PCs with Highest Variance
 
+#-----------------------------------------------------------------
+#--------------------------------PCA------------------------------
+#-----------------------------------------------------------------
+adata.X = adata.layers["analytic_pearson_residuals"]
+adata.var["highly_variable"] = adata.var["highly_deviant"]
+sc.tl.pca(adata, svd_solver="arpack", n_comps=50, use_highly_variable=True)
+
+explained_variance = adata.uns['pca']['variance_ratio'][:4] * 100 # Calculate the explained variance percentage for each PCA component
+sc.pl.pca(
+    adata,
+    color=["total_counts", "total_counts", "pct_counts_mt", "pct_counts_mt"],
+    dimensions=[(0, 1), (2, 3), (0, 1), (2, 3)],
+    ncols=2,
+    size=2,
+    show=False
+)
+
+# Get the current figure and axis objects
+fig = plt.gcf()
+axes = fig.axes
+# Adjust the axis labels to include explained variance percentage
+for i, ax in enumerate(axes[:4]):
+    if i % 2 == 0:  # Even index: PC1 vs PC2
+        x_pc, y_pc = 0, 1
+    else:  # Odd index: PC3 vs PC4
+        x_pc, y_pc = 2, 3
+
+    ax.set_xlabel(f'PC{x_pc+1} ({explained_variance[x_pc]:.2f}% variance)')
+    ax.set_ylabel(f'PC{y_pc+1} ({explained_variance[y_pc]:.2f}% variance)')
+#plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1, hspace=0.3, wspace=0.3)
+
+plt.tight_layout()  # Adjust layout to avoid overlap
+plt.show()
 
 #-----------------------------------------------------------------
 #------------------------------t-SNE------------------------------
@@ -811,15 +700,9 @@ sc.pl.tsne(adata, color="total_counts")
 #-----------------------------------------------------------------
 #------------------------------UMAPs------------------------------
 #-----------------------------------------------------------------
-sc.pp.neighbors(adata, n_pcs=30)
+sc.pp.neighbors(adata, n_pcs=25)#Adjust n_pcs according to elbow-plot
 sc.tl.umap(adata)
-
-sc.pl.umap(adata, color="total_counts")
-
-sc.pl.umap(
-    adata,
-    color=["total_counts", "pct_counts_mt", "scDblFinder_score", "scDblFinder_class"],
-)
+sc.pl.umap(adata, color=["total_counts", "pct_counts_mt", "scDblFinder_score", "scDblFinder_class"],)
 
 
 #-----------------------------------------------------------------
