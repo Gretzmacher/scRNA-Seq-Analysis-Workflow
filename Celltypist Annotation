@@ -56,34 +56,9 @@ adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\Pat3TumPP
 #adata = sc.read_h5ad(r"C:\Users\Gretzmache_N\IdeaProjects\SCRNAseq\src\mat6PP_data.h5ad")
 
 #-----------------------------------------------------------------
-#2----------------------------Leiden------------------------------
-#-----------------------------------------------------------------
-#sc.pp.neighbors(adata, n_pcs=30)
-#sc.tl.umap(adata)
-
-#sc.tl.leiden(adata)
-
-#sc.tl.leiden(adata, key_added="leiden_res0_25", resolution=0.25)
-#sc.tl.leiden(adata, key_added="leiden_res0_5", resolution=0.5)
-#sc.tl.leiden(adata, key_added="leiden_res1", resolution=1.0)
-
-#sc.pl.umap(
-#    adata,
-#    color=["leiden_res0_25", "leiden_res0_5", "leiden_res1"],
-#    legend_loc="on data",
-#)
-
-#adata.layers["counts"] = adata.X
-#adata.X = adata.layers["scran_normalization"]
-#adata.var["highly_variable"] = adata.var["highly_deviant"]
-#sc.tl.pca(adata, n_comps=50, use_highly_variable=True)
-#sc.pp.neighbors(adata)
-#sc.tl.umap(adata)
-
-#-----------------------------------------------------------------
 #2-------------------Celltypist Aut Annotation--------------------
 #-----------------------------------------------------------------
-sc.pp.neighbors(adata, n_pcs=30)
+sc.pp.neighbors(adata, n_pcs=25)
 sc.tl.umap(adata)
 sc.tl.leiden(adata)
 
@@ -132,11 +107,6 @@ adata.obs["celltypist_cell_label_GI"] = prediction_GI_adata.obs.loc[
 adata.obs["celltypist_conf_score_GI"] = prediction_GI_adata.obs.loc[
     adata.obs.index, "conf_score"
 ]
-
-#Examine the correspondence between CellTypist predictions (`use_as_prediction`) and manual annotations (`use_as_reference`).
-#Here, `predicted_labels` from `predictions.predicted_labels` is used as the prediction result from CellTypist.
-#`use_as_prediction` can be also set as `majority_voting` (see `1.7.`).
-#celltypist.dotplot(prediction_CRC, use_as_reference = 'leiden', use_as_prediction = 'predicted_labels')
 
 sc.pl.umap(
     adata,
