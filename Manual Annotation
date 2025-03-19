@@ -75,7 +75,7 @@ marker_genes = {
     "B1 B": ["MS4A1", "SSPN", "ITGB1", "EPHA4", "COL4A4", "PRDM1", "IRF4", "CD38", "XBP1", "PAX5",
              "BCL11A", "BLK",  "ZNF215", "IGHD", "IGHM"],  # Note IGHD and IGHM are negative markers
     "Transitional B": ["MME", "CD38", "CD24", "ACSM3", "MSI2"],
-    "Plasma Cells": ["JCHAIN", "MZB1", "HSP90B1", "FNDC3B", "PRDM1", "IGKC"],
+    "Plasma Cells": ["JCHAIN", "MZB1", "IGKC"],# "HSP90B1", "FNDC3B", "PRDM1", "IGKC"],
     "Plasmablasts": ["XBP1", "RF4", "PRDM1", "PAX5"],  # Note PAX5 is a negative marker
     "CD4+ T activated": ["IL7R", "SARAF", "LTB", "CD4", "TRBC2", "ITGB1"],
     "CD4+ T naive": ["CD4", "IL7R", "TRBC2", "CCR7"],
@@ -87,12 +87,25 @@ marker_genes = {
     "HSC": ["NRIP1", "MECOM", "PROM1", "NKAIN2", "CD34"],
     "MK/E prog": ["ZNF385D", "ITGA2B", "RYR3", "PLCB1"],# Note PLCB1 is a negative marker
     "Fibroblasts": ["COL1A1", "COL3A1", "DCN","VIM", "PDGFRB", "LUM", "COL6A2", "VTN"],
+    "CAF": ["COL1A1", "COL3A1", "DCN","VIM", "PDGFRB", "LUM", "COL6A2", "VTN", "IGFPB7", "SPAR", "LGALS1"],
     "Macrophages": ["C1QA", "LYZ", "CD68", "FCGR1", "NAAA", "LYZ2"],
-    "Epithelial Cells": ["EPCAM", "PIGR", "CEACAM", "CD24"],
+    "CAM": ["C1QA", "LYZ", "ALA-DPA1", "TYROBP", "TMSBAX", "HLA-DPB1", "HLA-DRA", "CD68", "FCGR1", "NAAA", "LYZ2"],
+    "M1":["HLA-DRA", "DC80", "CD86", "TNF"],
+    "M2":["CD163", "MRC1", "MRC2", "IL10"],
+    "Epithelial Cells": ["EPCAM", "PIGR", "CEACAM", "CD24", "LGR5", "KRT19"],
     "Mast Cells": ["KIT", "CPA3", "TPSAB1", "IL1RL1", "HDC"],
     "Neutrophils": ["S100A8", "S100A9", "CXCL8", "HP", "HDC"],
     "Endothelial": ["PLVAP", "VMF", "PECAM1", "IGFBP7", "ID3", "EGFL7"],
-    "Smooth Muscle Cells": ["TAGLN", "RGS5", "ACTA2"]
+    "Smooth Muscle Cells": ["TAGLN", "RGS5", "ACTA2"],
+    "Myeloid-like Cells": ["CD14", "CD68", "LYZ"],
+    "Monocytes": ["IFITM1", "APOBEC3A", "CD14", "CSF3R"],
+    "Dendritic Cells": ["CD83", "S100A9", "HLA-DQB1", "HLA-DRB1"],
+    "Crypt Cells": ["HOPX", "MSI1"],
+    "Cancer Cells1": ["EPCAM", "EGFR", "MALAT1", "JUN", "ELF3", "PLCG2", "ARGLU1", "ZG16", "FCGBP", "TFF3", "CEACAM5", "IFI27"],
+    "Cancer Cells1B": ["RPS7", "RPS6", "RPS18", "RPL19", "RPS4X"],
+    "Cancer Cells2": ["FABP1", "SPINK1", "GPX2", "C10ORF99", "TFP12", "SPP1", "RPS4Y1", "NQO1"],
+    "Cancer Cells3": ["SEC11C", "IGFBP2", "MT-ND1", "CHGB", "MT-ND3", "HIST1H4C", "PTMA", "MT-CO3"],
+    "Cancer Cells4": ["S100A9", "S100A8", "FTH1", "LYNX1", "KRT6A", "KRT8", "RPS3", "S100A11", "FTH1", "RPS2", "S100A10", "S100A6"]
 }
 
 marker_genes_in_data = {}
@@ -107,7 +120,7 @@ for ct, markers in marker_genes.items():
 #adata.X = adata.layers["scran_normalization"]
 adata.var["highly_variable"] = adata.var["highly_deviant"]
 sc.tl.pca(adata, n_comps=50, use_highly_variable=True)
-sc.pp.neighbors(adata, n_pcs=30)
+sc.pp.neighbors(adata, n_pcs=25)
 sc.tl.umap(adata)
 
 #sc.tl.leiden(adata)
@@ -122,20 +135,31 @@ sc.pl.umap(
 )
 
 Cell_Types_cts = [
-    "CD4+ T activated",
-    "CD4+ T naive",
-    "CD8+ T",
-    "Fibroblasts",
-    "Epithelial Cells",
-    "B1 B",
-    "Transitional B",
-    "Macrophages",
-    "Mast Cells",
+    #"CD4+ T activated",
+    #"CD4+ T naive",
+    #"CD8+ T",
+    "CAF",
+    #"Epithelial Cells",
+    #"B1 B",
+    #"Transitional B",
+    "CAM",
+    #"Mast Cells",
+    "M1",
+    "M2",
     "Plasma Cells",
-    "Plasmablasts",
-    "Neutrophils",
-    "Endothelial",
-    "Smooth Muscle Cells"
+    #"Plasmablasts",
+    #"Neutrophils",
+    #"Endothelial",
+    #"Smooth Muscle Cells",
+    #"Myeloid-like Cells",
+    #"Monocytes",
+    #"Dendritic Cells",
+    #"Crypt Cells"
+    "Cancer Cells1",
+    "Cancer Cells1B",
+    "Cancer Cells2",
+    "Cancer Cells3",
+    "Cancer Cells4"
 ]
 
 for ct in Cell_Types_cts:
@@ -151,7 +175,7 @@ for ct in Cell_Types_cts:
     )
     print("\n\n\n")  # print white space for legibility
 
-sc.tl.leiden(adata, resolution=1, key_added="leiden_res0_5")
+sc.tl.leiden(adata, resolution=0.5, key_added="leiden_res0_5")
 sc.pl.umap(adata, color="leiden_res0_5", legend_loc="on data")
 
 Cell_Types = {
@@ -169,9 +193,11 @@ sc.pl.dotplot(
 
 #---------------Manual Annotation-------------
 cl_annotation = {
-#    "13": "Epithelial Cells",
-#    "15": "Macrophages",
-#    "11": "CD8+ T Cells",
+    "7": "Cancer Associated Macrophages",
+    "11": "Cancer Associated Fibroblasts",
+    "10": "Plasma Cells",
+    "13": "Plasma Cells",
+    "15": "Plasma Cells"
 #    "17": "Fibroblasts",  # note that IGHD and IGHM are negative markers, in this case more lowly expressed than in the other B cell clusters
 }
 adata.obs["manual_celltype_annotation"] = adata.obs.leiden_res0_5.map(cl_annotation)
